@@ -1,16 +1,7 @@
-function getAll() {
-  return [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-    },
-    {
-      id: 2,
-      name: 'Jane Doe',
-      email: 'jane.doe@example.com',
-    },
-  ];
+import db from '../database/index.js';
+
+async function getAll() {
+  return db.user.findMany();
 }
 
 export default {
