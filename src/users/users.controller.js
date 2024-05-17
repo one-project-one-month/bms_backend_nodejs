@@ -93,11 +93,20 @@ export function transferMoney(req,res){
 //@access   private
 export function allTransactionHistory(req,res){
 
-  res.status(200).json({message : 'Transfer Money '})
+  res.status(200).json({message : 'Transaction Money '})
 }
 
 
 export default {
+  login,
   getAll,
+  getUser,
+  updateUser,
+  deleteUser,
+  logout,
+  depositeMoney,
+  withdrawMoney,
+  transferMoney,
+  allTransactionHistory
 
 };
