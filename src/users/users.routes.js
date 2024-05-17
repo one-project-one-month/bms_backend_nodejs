@@ -5,4 +5,5 @@ const router = express.Router();
 
 router.get('/', controller.getAll);
 
+
 export default router;
