@@ -17,6 +17,8 @@ model User {
   isDeactivated            Boolean             @default(false)
   stateCode                String
   townshipCode             String
+  admin                    Admin               @relation(fields: [adminId], references: [id])
+  adminId                  String
   SendingTransferHistory   Transfer[]          @relation(name: "sender")
   ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
   WithOrDeposit            WithdrawOrDeposit[]
@@ -31,6 +33,7 @@ model Admin {
   isFreezed         Boolean             @default(false)
   Transfer          Transfer[]
   WithdrawOrDeposit WithdrawOrDeposit[]
+  User              User[]
 }
 
 model Transfer {
