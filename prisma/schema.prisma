@@ -8,13 +8,45 @@ datasource db {
 }
 
 model User {
-  id            String  @id @default(uuid())
-  email         String  @unique
-  name          String
-  password      String
-  balance       Float
-  isDeleted     Boolean @default(false)
-  isDeactivated Boolean @default(false)
-  stateCode     String
-  townshipCode  String
+  id                       String          @id @default(uuid())
+  email                    String          @unique
+  name                     String
+  password                 String
+  balance                  Float
+  isDeleted                Boolean         @default(false)
+  isDeactivated            Boolean         @default(false)
+  stateCode                String
+  townshipCode             String
+  SendingTransferHistory   Transfer[]      @relation(name: "sender")
+  ReceivingTransferHistory Transfer[]      @relation(name: "receiver")
+  WithOrDeposit            WithOrDeposit[]
+}
+
+model Admin {
+  id           String  @id @default(uuid())
+  name         String
+  personalCode String  @unique
+  password     String
+  role         String
+  isFreezed    Boolean @default(false)
+}
+
+model Transfer {
+  id             String   @id @default(uuid())
+  sender         User     @relation(name: "sender", fields: [senderId], references: [id])
+  receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])
+  transferAmount Float
+  time           DateTime @default(now())
+  note           String
+  senderId       String
+  receiverId     String
+}
+
+model WithOrDeposit {
+  id     String   @id @default(uuid())
+  user   User     @relation(fields: [userId], references: [id])
+  type   String
+  userId String
+  amount Float
+  time   DateTime @default(now())
 }
