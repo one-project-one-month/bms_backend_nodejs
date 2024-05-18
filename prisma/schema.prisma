@@ -8,27 +8,29 @@ datasource db {
 }
 
 model User {
-  id                       String          @id @default(uuid())
-  email                    String          @unique
+  id                       String              @id @default(uuid())
+  email                    String              @unique
   name                     String
   password                 String
   balance                  Float
-  isDeleted                Boolean         @default(false)
-  isDeactivated            Boolean         @default(false)
+  isDeleted                Boolean             @default(false)
+  isDeactivated            Boolean             @default(false)
   stateCode                String
   townshipCode             String
-  SendingTransferHistory   Transfer[]      @relation(name: "sender")
-  ReceivingTransferHistory Transfer[]      @relation(name: "receiver")
-  WithOrDeposit            WithOrDeposit[]
+  SendingTransferHistory   Transfer[]          @relation(name: "sender")
+  ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
+  WithOrDeposit            WithdrawOrDeposit[]
 }
 
 model Admin {
-  id           String  @id @default(uuid())
-  name         String
-  personalCode String  @unique
-  password     String
-  role         String
-  isFreezed    Boolean @default(false)
+  id                String              @id @default(uuid())
+  name              String
+  personalCode      String              @unique
+  password          String
+  role              String
+  isFreezed         Boolean             @default(false)
+  Transfer          Transfer[]
+  WithdrawOrDeposit WithdrawOrDeposit[]
 }
 
 model Transfer {
@@ -36,17 +38,21 @@ model Transfer {
   sender         User     @relation(name: "sender", fields: [senderId], references: [id])
   receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])
   transferAmount Float
-  time           DateTime @default(now())
   note           String
+  time           DateTime @default(now())
   senderId       String
   receiverId     String
+  admin          Admin    @relation(fields: [adminId], references: [id])
+  adminId        String
 }
 
-model WithOrDeposit {
-  id     String   @id @default(uuid())
-  user   User     @relation(fields: [userId], references: [id])
-  type   String
-  userId String
-  amount Float
-  time   DateTime @default(now())
+model WithdrawOrDeposit {
+  id      String   @id @default(uuid())
+  type    String
+  amount  Float
+  time    DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  admin   Admin    @relation(fields: [adminId], references: [id])
+  adminId String
 }
