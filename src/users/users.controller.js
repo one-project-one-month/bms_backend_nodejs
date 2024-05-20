@@ -4,12 +4,12 @@ import services from './users.service.js';
 
 
 //desc      login/set token
-//route     post/api/v1/users/login
+//route     post/api/v1/users/signup
 //@access   private
-export async function login(req,res){
+export async function signUp(req,res){
 
   const user = await res.services.createUser();
- 
+   
 }
 
 //desc      get user
@@ -160,7 +160,7 @@ export async function allTransactionHistory(req,res){
 
 
 export default {
-  login,
+  signUp,
   getAll,
   getUser,
   updateUser,
