@@ -91,72 +91,6 @@ export function logout(req,res){
 }
 
 
-//desc      Deposit
-//route     post/api/v1/users/{id}/deposite
-//@access   private
-
-export async function depositMoney(req,res){
-
-  try{
-      const {amount} = req.body;
-      const user = await user.services.depositMoney(req.params.id , amount)
-      res.json(user)
-  }catch(error){
-    res.status(500).json({ error: 'An error occurred while depositing users' });
-  }
-
-
-}
-
-
-
-//desc      withdraw
-//route     post/api/v1/users/{id}/withdraw
-//@access   private
-
-export async function withdrawMoney(req,res){
-
-  try{
-      const {amount} = req.body;
-        const result = await user.services.withdrawMoney(req.params.id , amount)
-        res.json(result);
-  }catch(error){
-    res.status(500).json({ error: 'An error occurred while while withdrawing money' });
-  }
-  }
-
-
-
- 
-//desc      Transfer
-//route     post/api/v1/users/{id}/transfer
-//@access   private
-export async function transferMoney(req,res){
-  try{
-      const {toUserId ,amount} = req.body;
-      const result = await services.transferMoney(req.params.id,toUserId,amount);
-      res.json(result);
-  }catch(error){
-    res.status(500).json({ error: 'An error occurred while  transfering money' });
-  }
- 
-}
-
-
-//desc      All user's transaction history
-//route     post/api/v1/users/{id}/transaction_history
-//@access   private
-export async function allTransactionHistory(req,res){
-
-      try{
-          const transaction = await services.allTransactionHistory(req.params.id)
-          res.json(transaction)
-      }catch(error){
-        res.status(500).json({ error: 'An error occurred while reviewing All Transaction History' });
-      }
-
-
-}
 
 
 export default {
@@ -165,10 +99,6 @@ export default {
   getUser,
   updateUser,
   deleteUser,
-  logout,
-  depositMoney,
-  withdrawMoney,
-  transferMoney,
-  allTransactionHistory
+  logout
 
 };
