@@ -1,6 +1,6 @@
 import services from './users.service.js';
 
-import bcrypt from 'bcryptjs'
+
 
 
 //desc      login/set token
@@ -9,10 +9,8 @@ import bcrypt from 'bcryptjs'
 export async function login(req,res){
 
   const user = await res.services.createUser();
-  result = user.json({message : "user login"})
+ 
 }
-
-
 
 //desc      get user
 //route     Get/api/v1/users
