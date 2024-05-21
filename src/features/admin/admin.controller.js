@@ -10,7 +10,9 @@ const findAllAdmin = async (req, res) => {
       const admin = await adminService.findByPersonalCode(personalCode);
       return res.status(200).json(resp.one(admin));
     } catch (error) {
-      return res.status(400).json({ msg: error.name });
+      if ((error.name = "NotFoundError"))
+        return res.status(400).json({ msg: error.name });
+      return res.status(500).json({ msg: "Internal server error" });
     }
   }
   let admins = await adminService.findAll();
@@ -24,14 +26,17 @@ const findAdminById = async (req, res) => {
     const admin = await adminService.findById(id);
     return res.status(200).json(resp.one(admin));
   } catch (error) {
-    return res.status(400).json({ msg: error.name });
+    if ((error.name = "NotFoundError"))
+      return res.status(400).json({ msg: error.name });
+    return res.status(500).json({ msg: "Internal server error" });
   }
 };
 
 const createAdmin = async (req, res) => {
   const { name, password, role } = req.body;
   const admin = await adminService.create(name, password, role);
-  return res.status(200).json(resp.one(admin));
+  if (!admin) return res.status(500).json({ msg: "Internal server error" });
+  return res.status(201).json(resp.one(admin));
 };
 
 const deactivateAdmin = async (req, res) => {
