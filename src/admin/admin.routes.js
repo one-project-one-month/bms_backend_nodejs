@@ -6,7 +6,6 @@ const router = express.Router();
 router.get("/", adminController.findAllAdmin);
 router.post("/", adminController.createAdmin);
 router.get("/:id", adminController.findAdminById);
-router.post("/search", adminController.findAdminByPersonalCode);
-router.delete("/deactivate", adminController.deactivateAdmin);
+router.post("/deactivate", adminController.deactivateAdmin);
 
 export default router;
