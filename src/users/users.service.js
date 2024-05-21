@@ -1,5 +1,5 @@
 import db from '../database/index.js';
-import bcrypt from 'bcryptjs';
+
 
 async function createUser(data){
     return db.user.create({

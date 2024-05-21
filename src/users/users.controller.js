@@ -1,6 +1,6 @@
 import services from './users.service.js';
-
-
+import jwt from "../utils/generateToken.js"
+import bcrypt from 'bcryptjs'
 
 
 //desc      login/set token
