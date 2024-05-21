@@ -1,8 +1,18 @@
 import db from '../database/index.js';
+import bcrypt from 'bcryptjs';
 
-async function createUser(){
-  return db.user.create({data});
+async function createUser(data){
+    return db.user.create({
+      data,
+    })
 }
+
+async function getUserByEmail(email){
+  return db.user.findUnique({
+    where : {email}
+  })
+}
+
 
 async function getAll() {
   return db.user.findMany();
@@ -10,30 +20,29 @@ async function getAll() {
 
 async function getUserById(id){
   return db.user.findUnique({
-    where: {id : parseInt(id)},
-  });
-}
-
-async function updateUser(id,data){
-    return db.user.update({
-      where : {id : parseInt(id)},
-      data,
-    })
-}
-
-async function deleteUser(id){
-  return db.user.delete({
-    where : {id : parseInt(id)},
+    where : {id : id},
   })
 }
 
 
+async function updateUser(id,data){
+  return db.user.update({
+    where : {id : id},
+    data
+  })
+}
 
-export default {
+async function deleteUser(id){
+  return db.user.delete({
+    where : {id : id}
+  })
+}
+
+export default{
   createUser,
+  getUserByEmail,
   getAll,
   getUserById,
   updateUser,
-  deleteUser,
- 
-}; 
+  deleteUser
+}
