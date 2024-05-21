@@ -30,7 +30,7 @@ model Admin {
   personalCode      String              @unique
   password          String
   role              String
-  isFreezed         Boolean             @default(false)
+  isDeactivaed      Boolean             @default(false)
   Transfer          Transfer[]
   WithdrawOrDeposit WithdrawOrDeposit[]
   User              User[]
