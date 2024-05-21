@@ -1,5 +1,5 @@
 import { apiRes } from "../../response/response.js";
-import adminService from "./admin.service.js";
+import adminService from "./admins.service.js";
 
 const resp = apiRes("admins", "Admin");
 

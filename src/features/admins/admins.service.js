@@ -1,5 +1,5 @@
 import db from "../../database/index.js";
-import { generatePersonalCode } from "./admin.handler.js";
+import { generatePersonalCode } from "./admins.handler.js";
 
 const findAll = async () => {
   return db.admin.findMany();

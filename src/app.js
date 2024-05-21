@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDatabase } from "./database/index.js";
 import homeRoute from "./features/home/home.router.js";
-import adminRoute from "./features/admin/admin.routes.js";
+import adminRoute from "./features/admins/admins.routes.js";
 import { V1 } from "./configs.js";
 
 connectDatabase();
