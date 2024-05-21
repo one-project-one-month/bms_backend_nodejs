@@ -21,7 +21,7 @@ model User {
   adminId                  String
   SendingTransferHistory   Transfer[]          @relation(name: "sender")
   ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
-  WithOrDeposit            WithdrawOrDeposit[]
+  WithdrawOrDeposit        WithdrawOrDeposit[]
 }
 
 model Admin {
