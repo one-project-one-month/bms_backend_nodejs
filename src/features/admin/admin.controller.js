@@ -1,5 +1,4 @@
 import { apiRes } from "../../response/response.js";
-import { generatePersonalCode } from "./admin.handler.js";
 import adminService from "./admin.service.js";
 
 const resp = apiRes("admins", "Admin");
@@ -31,8 +30,7 @@ const findAdminById = async (req, res) => {
 
 const createAdmin = async (req, res) => {
   const { name, password, role } = req.body;
-  const personalCode = generatePersonalCode(name + new Date().toISOString());
-  const admin = await adminService.create(name, personalCode, password, role);
+  const admin = await adminService.create(name, password, role);
   return res.status(200).json(resp.one(admin));
 };
 

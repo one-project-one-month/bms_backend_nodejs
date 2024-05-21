@@ -1,4 +1,5 @@
 import db from "../../database/index.js";
+import { generatePersonalCode } from "./admin.handler.js";
 
 const findAll = async () => {
   return db.admin.findMany();
@@ -20,7 +21,8 @@ const findByPersonalCode = async (personalCode) => {
   });
 };
 
-const create = async (name, personalCode, password, role) => {
+const create = async (name, password, role) => {
+  const personalCode = generatePersonalCode(name + new Date().toISOString());
   return db.admin.create({
     data: { name, personalCode, password, role },
   });
