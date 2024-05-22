@@ -1,3 +1,4 @@
+import { matchedData, validationResult } from "express-validator";
 import httpStatus from "http-status-codes";
 import userServices from "./users.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
@@ -47,13 +48,19 @@ const findUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  const newUser = await exceptionHandler(userServices.create)(req.body);
-  if (newUser instanceof Error) {
-    return res
-      .status(httpStatus.INTERNAL_SERVER_ERROR)
-      .json({ message: newUser.message });
+  const result = validationResult(req);
+  if (result.isEmpty()) {
+    const data = matchedData(req);
+    console.info("data in user creation ", data);
+    const newUser = await exceptionHandler(userServices.create)(data);
+    if (newUser instanceof Error) {
+      return res
+        .status(httpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: newUser.message });
+    }
+    return res.status(httpStatus.OK).json(resp.one(newUser));
   }
-  return res.status(httpStatus.OK).json(resp.one(newUser));
+  return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
 const updateUser = async (req, res) => {

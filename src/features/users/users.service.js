@@ -26,14 +26,14 @@ const findByEmail = async (email) => {
   });
 };
 
-const create = async (
+const create = async ({
   name,
-  email,
   password,
+  email,
   stateCode,
   townshipCode,
-  adminId
-) => {
+  adminId,
+}) => {
   return db.user.create({
     data: { name, email, password, stateCode, townshipCode, adminId },
     select: select,

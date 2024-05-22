@@ -15,7 +15,7 @@ const createUserValidation = () => {
         errorMessage: "Password must be at least 8 characters.",
       },
       errorMessage:
-        "Password must be strong. At least one uppercase letter, one lowercase letter, one digit and one special character.",
+        "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
     },
     email: {
       notEmpty: {
