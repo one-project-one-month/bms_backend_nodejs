@@ -90,15 +90,19 @@ const deactivateUser = async (req, res) => {
 };
 
 const userActions = async (req, res) => {
-  const { type } = req.body;
-  switch (type) {
-    case "deactivate":
-      return deactivateUser(req, res);
-    default:
-      return res
-        .status(httpStatus.METHOD_NOT_ALLOWED)
-        .json({ message: "Invalid action type" });
+  const result = validationResult(req);
+  if (result.isEmpty()) {
+    const { name } = req.body;
+    switch (name) {
+      case "deactivate":
+        return deactivateUser(req, res);
+      default:
+        return res
+          .status(httpStatus.METHOD_NOT_ALLOWED)
+          .json({ message: "Invalid action name" });
+    }
   }
+  return res.status(httpStatus.BAD_REQUEST).json({ errors: result.array() });
 };
 
 const deleteUser = async (req, res) => {

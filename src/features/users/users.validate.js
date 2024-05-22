@@ -84,4 +84,13 @@ const createUserValidation = () => {
   });
 };
 
-export { createUserValidation, updateUserValidation };
+const userActionsValidation = () => {
+  return checkSchema({
+    name: {
+      notEmpty: true,
+      errorMessage: "name property is required.",
+    },
+  });
+};
+
+export { createUserValidation, updateUserValidation, userActionsValidation };
