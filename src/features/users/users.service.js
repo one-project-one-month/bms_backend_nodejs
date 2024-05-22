@@ -19,6 +19,13 @@ const findById = async (id) => {
   });
 };
 
+const findByEmail = async (email) => {
+  return db.user.findUniqueOrThrow({
+    where: { email },
+    select: select,
+  });
+};
+
 const create = async (
   name,
   email,
@@ -77,6 +84,7 @@ const remove = async (id) => {
 export default {
   findAll,
   findById,
+  findByEmail,
   create,
   update,
   deactivate,

@@ -6,6 +6,21 @@ import usersService from "./users.service.js";
 const resp = apiRes("users", "User");
 
 const findAllUsers = async (req, res) => {
+  const email = req.query["email"];
+  if (email) {
+    const user = await exceptionHandler(userServices.findByEmail)(email);
+    if (user instanceof Error) {
+      switch (data.message) {
+        case "NotFoundError":
+          return res
+            .status(400)
+            .json({ message: `not found user with id ${id}` });
+        default:
+          return res.status(500).json({ message: "something went wrong!!!!" });
+      }
+    }
+    return res.status(200).json(resp.one(user));
+  }
   let users = await userServices.findAll();
   users = users.map((user) => resp.one(user));
   return res.status(200).json(resp.collection(users));
