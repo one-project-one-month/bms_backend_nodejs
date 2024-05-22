@@ -1,7 +1,7 @@
+import { matchedData, validationResult } from "express-validator";
 import userServices from "./users.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
 import { apiRes } from "../../response/response.js";
-import usersService from "./users.service.js";
 
 const resp = apiRes("users", "User");
 
@@ -43,11 +43,17 @@ const findUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  const newUser = await exceptionHandler(userServices.create)(req.body);
-  if (newUser instanceof Error) {
-    return res.status(500).json({ message: newUser.message });
+  const result = validationResult(req);
+  if (result.isEmpty()) {
+    const data = matchedData(req);
+    console.info("create user data ", data);
+    const newUser = await exceptionHandler(userServices.create)(req.body);
+    if (newUser instanceof Error) {
+      return res.status(500).json({ message: newUser.message });
+    }
+    return res.status(201).json(resp.one(newUser));
   }
-  return res.status(201).json(resp.one(newUser));
+  return res.status(400).json({ errors: result.array() });
 };
 
 const updateUser = async (req, res) => {
