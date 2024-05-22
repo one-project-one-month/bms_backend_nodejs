@@ -10,11 +10,11 @@ const findAllUsers = async (req, res) => {
   if (email) {
     const user = await exceptionHandler(userServices.findByEmail)(email);
     if (user instanceof Error) {
-      switch (data.message) {
+      switch (user.message) {
         case "NotFoundError":
           return res
             .status(400)
-            .json({ message: `not found user with id ${id}` });
+            .json({ message: `not found user with email: ${email}` });
         default:
           return res.status(500).json({ message: "something went wrong!!!!" });
       }
