@@ -78,6 +78,8 @@ const userActions = async (req, res) => {
   switch (type) {
     case "deactivate":
       return deactivateUser(req, res);
+    default:
+      return res.status(405).json({ message: "Invalid action type" });
   }
 };
 
