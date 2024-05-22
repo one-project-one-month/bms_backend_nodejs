@@ -43,7 +43,7 @@ const create = async ({
 const update = async (id, updatedUser) => {
   return db.user.update({
     where: { id },
-    data: updatedUser,
+    data: { ...updatedUser },
     select: {
       id: true,
       balance: true,

@@ -64,14 +64,19 @@ const createUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const id = req.params["id"];
-  const updatedUser = await exceptionHandler(userServices.update)(id, req.body);
-  if (updateUser instanceof Error) {
-    return res
-      .status(httpStatus.INTERNAL_SERVER_ERROR)
-      .json({ message: updateUser.message });
+  const result = validationResult(req);
+  if (result.isEmpty()) {
+    const id = req.params["id"];
+    const data = matchedData(req.body);
+    const updatedUser = await exceptionHandler(userServices.update)(id, data);
+    if (updateUser instanceof Error) {
+      return res
+        .status(httpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: updateUser.message });
+    }
+    return res.status(httpStatus.OK).json(resp.one(updatedUser));
   }
-  return res.status(httpStatus.OK).json(resp.one(updatedUser));
+  return res.status(httpStatus.BAD_REQUEST).json({ errors: result.array() });
 };
 
 const deactivateUser = async (req, res) => {
