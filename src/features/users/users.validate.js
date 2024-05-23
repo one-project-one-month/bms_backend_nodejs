@@ -2,44 +2,41 @@ import { checkSchema } from "express-validator";
 
 const updateUserValidation = () => {
   return checkSchema({
-    name: {
-      optional: true,
+    id: {
       notEmpty: true,
-      errorMessage: "Name must contain only alphabet.",
     },
-    password: {
-      optional: true,
-      notEmpty: true,
-      isStrongPassword: true,
-      isLength: {
-        options: { min: 8 },
-        errorMessage: "Password must be at least 8 characters.",
+    data: {
+      name: {
+        optional: true,
       },
-      errorMessage:
-        "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
-    },
-    email: {
-      optional: true,
-      notEmpty: {
-        errorMessage: "Email must not empty.",
+      password: {
+        optional: true,
+        isStrongPassword: true,
+        isLength: {
+          options: { min: 8 },
+          errorMessage: "Password must be at least 8 characters.",
+        },
+        errorMessage:
+          "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
       },
-      isEmail: true,
-      errorMessage: "Invalid email",
+      balance: {
+        optional: true,
+        isDecimal: true,
+      },
+      email: {
+        optional: true,
+        isEmail: true,
+        errorMessage: "Invalid email",
+      },
     },
     stateCode: {
       optional: true,
-      notEmpty: true,
-      errorMessage: "StateCode must not empty.",
     },
     townshipCode: {
       optional: true,
-      notEmpty: true,
-      errorMessage: "TownshipCode must not empty.",
     },
     adminId: {
       optional: true,
-      notEmpty: true,
-      errorMessage: "AdminId must not empty.",
     },
   });
 };
@@ -48,7 +45,6 @@ const createUserValidation = () => {
   return checkSchema({
     name: {
       notEmpty: true,
-      errorMessage: "Name must contain only alphabet.",
     },
     password: {
       notEmpty: true,
@@ -84,11 +80,33 @@ const createUserValidation = () => {
 
 const userActionsValidation = () => {
   return checkSchema({
-    name: {
+    id: {
       notEmpty: true,
-      errorMessage: "name property is required.",
+      errorMessage: "User id is required.",
+    },
+    data: {
+      notEmpty: true,
+      errorMessage: "Data is required.",
+    },
+    "data.name": {
+      notEmpty: true,
+      errorMessage: "Action name is required.",
     },
   });
 };
 
-export { createUserValidation, updateUserValidation, userActionsValidation };
+const deleteUserValidation = () => {
+  return checkSchema({
+    id: {
+      notEmpty: true,
+      errorMessage: "User id is required.",
+    },
+  });
+};
+
+export {
+  createUserValidation,
+  updateUserValidation,
+  userActionsValidation,
+  deleteUserValidation,
+};

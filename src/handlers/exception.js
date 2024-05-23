@@ -4,7 +4,7 @@ export function exceptionHandler(handlerFn) {
       const data = await handlerFn(...params);
       return data;
     } catch (error) {
-      return new Error(error.message);
+      return error;
     }
   };
 }

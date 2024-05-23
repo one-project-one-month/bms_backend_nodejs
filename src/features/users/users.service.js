@@ -4,6 +4,7 @@ const select = {
   id: true,
   name: true,
   email: true,
+  balance: true,
   stateCode: true,
   townshipCode: true,
 };
@@ -40,14 +41,11 @@ const create = async ({
   });
 };
 
-const update = async (id, updatedUser) => {
+const update = async (id, data) => {
   return db.user.update({
     where: { id },
-    data: { ...updatedUser },
-    select: {
-      id: true,
-      balance: true,
-    },
+    data,
+    select: select,
   });
 };
 
