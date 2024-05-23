@@ -19,8 +19,8 @@ model User {
   townshipCode             String
   admin                    Admin               @relation(fields: [adminId], references: [id])
   adminId                  String
-  SendingTransferHistory   Transfer[]          @relation(name: "sender")
-  ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
+  SendingTransferHistory   Transaction[]       @relation(name: "sender")
+  ReceivingTransferHistory Transaction[]       @relation(name: "receiver")
   WithdrawOrDeposit        WithdrawOrDeposit[]
 }
 
@@ -31,12 +31,12 @@ model Admin {
   password          String
   role              String
   isDeactivaed      Boolean             @default(false)
-  Transfer          Transfer[]
+  Transfer          Transaction[]
   WithdrawOrDeposit WithdrawOrDeposit[]
   User              User[]
 }
 
-model Transfer {
+model Transaction {
   id             String   @id @default(uuid())
   sender         User     @relation(name: "sender", fields: [senderId], references: [id])
   receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])
