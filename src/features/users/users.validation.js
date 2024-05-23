@@ -4,38 +4,41 @@ const updateUserValidation = () => {
   return checkSchema({
     id: {
       notEmpty: true,
+      errorMessage: "User id is required.",
     },
     data: {
-      name: {
-        optional: true,
-      },
-      password: {
-        optional: true,
-        isStrongPassword: true,
-        isLength: {
-          options: { min: 8 },
-          errorMessage: "Password must be at least 8 characters.",
-        },
-        errorMessage:
-          "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
-      },
-      balance: {
-        optional: true,
-        isDecimal: true,
-      },
-      email: {
-        optional: true,
-        isEmail: true,
-        errorMessage: "Invalid email",
-      },
+      notEmpty: true,
+      errorMessage: "Data is required.",
     },
-    stateCode: {
+    "data.name": {
       optional: true,
     },
-    townshipCode: {
+    "data.password": {
+      optional: true,
+      isStrongPassword: true,
+      isLength: {
+        options: { min: 8 },
+        errorMessage: "Password must be at least 8 characters.",
+      },
+      errorMessage:
+        "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
+    },
+    "data.balance": {
+      optional: true,
+      isDecimal: true,
+    },
+    "data.email": {
+      optional: true,
+      isEmail: true,
+      errorMessage: "Invalid email",
+    },
+    "data.stateCode": {
       optional: true,
     },
-    adminId: {
+    "data.townshipCode": {
+      optional: true,
+    },
+    "data.adminId": {
       optional: true,
     },
   });
@@ -45,6 +48,7 @@ const createUserValidation = () => {
   return checkSchema({
     name: {
       notEmpty: true,
+      errorMessage: "User name is required.",
     },
     password: {
       notEmpty: true,

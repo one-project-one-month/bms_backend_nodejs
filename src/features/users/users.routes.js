@@ -4,7 +4,7 @@ import {
   createUserValidation,
   updateUserValidation,
   userActionsValidation,
-} from "./users.validate.js";
+} from "./users.validation.js";
 
 const router = express.Router();
 
