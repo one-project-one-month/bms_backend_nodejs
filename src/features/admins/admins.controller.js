@@ -1,8 +1,10 @@
 import httpStatus from "http-status-codes";
+import { matchedData, validationResult } from "express-validator";
 import { apiRes } from "../../response/response.js";
 import adminService from "./admins.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
-import { matchedData, validationResult } from "express-validator";
+import userProtocol from "../users/users.protocols.js";
+import transactionProtocol from "../transactions/transactions.protocol.js";
 
 const resp = apiRes("admins", "Admin");
 
@@ -96,9 +98,74 @@ const adminActions = async (req, res) => {
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
+const transfer = async (req, res) => {
+  const { id, data } = matchedData(req);
+  const { senderEmail, receiverEmail, transferAmount, note } = data;
+
+  if (senderEmail === receiverEmail)
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: "Sender email and receiver email must not be same." });
+
+  const sender = await userProtocol.findUserByEmail(senderEmail);
+  if (sender instanceof Error) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: `user not found with email: ${senderEmail}` });
+  }
+
+  const receiver = await userProtocol.findUserByEmail(receiverEmail);
+  if (receiver instanceof Error) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: `user not found with email: ${receiverEmail}` });
+  }
+
+  if (sender.balance < transferAmount) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      message: "Sender's balance must be greater than transfer amount.",
+    });
+  }
+
+  await userProtocol.changeBalance(sender.id, sender.balance - transferAmount);
+
+  await userProtocol.changeBalance(
+    receiver.id,
+    receiver.balance + transferAmount
+  );
+
+  await transactionProtocol.makeTransaction(
+    sender.id,
+    receiver.id,
+    id,
+    transferAmount,
+    note
+  );
+
+  return res.status(httpStatus.OK).end();
+};
+
+const transactions = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+  }
+  const { type } = matchedData(req);
+  switch (type) {
+    case "transfer":
+      return transfer(req, res);
+
+    default:
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ message: "Invalid transfer type name" });
+  }
+};
+
 export default {
   findAllAdmin,
   findAdminById,
   createAdmin,
   adminActions,
+  transactions,
 };
