@@ -99,18 +99,4 @@ const userActionsValidation = () => {
   });
 };
 
-const deleteUserValidation = () => {
-  return checkSchema({
-    id: {
-      notEmpty: true,
-      errorMessage: "User id is required.",
-    },
-  });
-};
-
-export {
-  createUserValidation,
-  updateUserValidation,
-  userActionsValidation,
-  deleteUserValidation,
-};
+export { createUserValidation, updateUserValidation, userActionsValidation };
