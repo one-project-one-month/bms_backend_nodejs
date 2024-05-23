@@ -11,6 +11,10 @@ export async function signUp(req,res){
     try{
         const {email,name,password,stateCode,townshipCode} = req.body;
 
+        if (!email || !name || !password || !stateCode || !townshipCode) {
+          return res.status(400).json({ error: 'All fields are required' });
+      }
+
         const hashedPassword = await bcrypt.hash(password,10)
         const existingUser = await services.getUserByEmail(email);
 
@@ -50,8 +54,17 @@ export async function login(req,res){
     try{
 
       const {email , password}= req.body;
-      const user = await services.getUserByEmail(email)
+      
+
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+    }
         
+
+      const user = await services.getUserByEmail(email)
+
+      
       if(user && (await bcrypt.compare(password,user.password))){
         generateToken(res,user.id);
         res.json({
