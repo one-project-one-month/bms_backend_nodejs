@@ -1,15 +1,72 @@
 import services from './users.service.js';
-import jwt from "../utils/generateToken.js"
 import bcrypt from 'bcryptjs'
+import generateToken from '../utils/generateToken.js';
 
 
-//desc      login/set token
+//desc      signup/set token
 //route     post/api/v1/users/signup
 //@access   private
 export async function signUp(req,res){
 
-  const user = await res.services.createUser();
+    try{
+        const {email,name,password,stateCode,townshipCode} = req.body;
+
+        const hashedPassword = await bcrypt.hash(password,10)
+        const existingUser = await services.getUserByEmail(email);
+
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+        const user = await services.createUser({
+            id : crypto.randomUUID(),
+            email,
+            name,
+            password:hashedPassword,
+            balance : 0,
+            stateCode,
+            townshipCode,
+
+        })
+
+        generateToken(res,user.id)
+
+          res.status(201).json({
+            _id:user.id,
+            email:email,
+            name:name,
+          })
+    }catch(error){
+      res.status(500).json({ error: 'An error occurred while signing up' });
+    }
    
+}
+
+
+//desc      Login user and set token
+//route     POST /api/v1/users/login
+//@access   Public
+
+export async function login(req,res){
+    try{
+
+      const {email , password}= req.body;
+      const user = await services.getUserByEmail(email)
+        
+      if(user && (await bcrypt.compare(password,user.password))){
+        generateToken(res,user.id);
+        res.json({
+          _id :user.id,
+          email :user.email,
+          name : user.name,
+        })
+      }else{
+        res.status(401).json({ error: 'Invalid email or password' })
+      }
+    }
+    
+    catch(error){
+      res.status(500).json({ error: 'An error occurred while logging in' })
+    }
 }
 
 //desc      get user
@@ -85,9 +142,12 @@ export async function deleteUser(req,res){
 //@access   private
 export function logout(req,res){
 
-
-
-  res.status(200).json({message : 'logout User '})
+    res.cookie('jwt','',{
+      httpOnly : true,
+      expires : new Date(0),
+    })
+    res.status(201).json({message : "user logged out successfully"})
+ 
 }
 
 
@@ -95,6 +155,7 @@ export function logout(req,res){
 
 export default {
   signUp,
+  login,
   getAll,
   getUser,
   updateUser,
