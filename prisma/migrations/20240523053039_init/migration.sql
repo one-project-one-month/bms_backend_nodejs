@@ -4,7 +4,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "balance" DOUBLE PRECISION NOT NULL,
+    "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "isDeactivated" BOOLEAN NOT NULL DEFAULT false,
     "stateCode" TEXT NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "Admin" (
     "personalCode" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" TEXT NOT NULL,
-    "isFreezed" BOOLEAN NOT NULL DEFAULT false,
+    "isDeactivaed" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );

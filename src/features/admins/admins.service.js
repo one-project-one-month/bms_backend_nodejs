@@ -28,10 +28,10 @@ const create = async (name, password, role) => {
   });
 };
 
-const deactivate = async (personalCode) => {
+const deactivate = async (id) => {
   return db.admin.update({
     where: {
-      personalCode,
+      id,
     },
     data: {
       isDeactivaed: true,
