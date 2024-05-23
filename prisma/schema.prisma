@@ -41,7 +41,7 @@ model Transaction {
   sender         User     @relation(name: "sender", fields: [senderId], references: [id])
   receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])
   transferAmount Float
-  note           String
+  note           String   @default("")
   time           DateTime @default(now())
   senderId       String
   receiverId     String
