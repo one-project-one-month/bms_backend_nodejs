@@ -2,6 +2,7 @@ import httpStatus from "http-status-codes";
 import { apiRes } from "../../response/response.js";
 import adminService from "./admins.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
+import { matchedData, validationResult } from "express-validator";
 
 const resp = apiRes("admins", "Admin");
 
@@ -64,21 +65,35 @@ const createAdmin = async (req, res) => {
 };
 
 const deactivateAdmin = async (req, res) => {
-  const id = req.params["id"];
-  const admin = await adminService.deactivate(id);
+  const { id } = matchedData(req);
+  const admin = await exceptionHandler(adminService.deactivate)(id);
+  if (admin instanceof Error) {
+    switch (admin.name) {
+      case "PrismaClientKnownRequestError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Admin not found." });
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
+  }
   return res.status(200).json(resp.one(admin));
 };
 
 const adminActions = async (req, res) => {
-  const { name } = req.body;
-  switch (name) {
-    case "deactivate":
-      return deactivateAdmin(req, res);
-    default:
-      return res
-        .status(httpStatus.BAD_REQUEST)
-        .json({ message: "Invalid action name" });
+  const result = validationResult(req);
+  if (result.isEmpty()) {
+    const { data } = matchedData(req);
+    switch (data.name) {
+      case "deactivate":
+        return deactivateAdmin(req, res);
+      default:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Invalid action name" });
+    }
   }
+  return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
 export default {
