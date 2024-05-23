@@ -5,7 +5,6 @@ const updateUserValidation = () => {
     name: {
       optional: true,
       notEmpty: true,
-      isAlpha: true,
       errorMessage: "Name must contain only alphabet.",
     },
     password: {
@@ -49,7 +48,6 @@ const createUserValidation = () => {
   return checkSchema({
     name: {
       notEmpty: true,
-      isAlpha: true,
       errorMessage: "Name must contain only alphabet.",
     },
     password: {

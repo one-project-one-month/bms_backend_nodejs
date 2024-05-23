@@ -57,11 +57,6 @@ const deactivate = async (id) => {
     data: {
       isDeactivated: true,
     },
-    select: {
-      id: true,
-      name: true,
-      isDeactivated: true,
-    },
   });
 };
 
@@ -71,12 +66,6 @@ const remove = async (id) => {
     data: {
       isDeleted: true,
       isDeactivated: true,
-    },
-    select: {
-      id: true,
-      name: true,
-      isDeactivated: true,
-      isDeleted: true,
     },
   });
 };

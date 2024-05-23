@@ -51,7 +51,6 @@ const createUser = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
     const data = matchedData(req);
-    console.info("data in user creation ", data);
     const newUser = await exceptionHandler(userServices.create)(data);
     if (newUser instanceof Error) {
       return res
@@ -86,7 +85,7 @@ const deactivateUser = async (req, res) => {
     return res
       .status(httpStatus.INTERNAL_SERVER_ERROR)
       .json({ message: deactivatedUser.message });
-  return res.status(httpStatus.OK).json(resp.one(deactivatedUser));
+  return res.status(httpStatus.OK).end();
 };
 
 const userActions = async (req, res) => {
