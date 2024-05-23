@@ -12,7 +12,7 @@ model User {
   email         String  @unique
   name          String
   password      String
-  balance       Float
+  balance       Float   @default(0)
   isDeleted     Boolean @default(false)
   isDeactivated Boolean @default(false)
   stateCode     String

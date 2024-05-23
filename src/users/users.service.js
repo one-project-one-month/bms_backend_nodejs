@@ -1,48 +1,49 @@
-import db from '../database/index.js';
+import db from "../database/index.js";
 
-
-async function createUser(data){
-    return db.user.create({
-      data,
-    })
+async function createUser(data) {
+  return db.user.create({
+    data,
+  });
 }
 
-async function getUserByEmail(email){
+async function getUserByEmail(email) {
   return db.user.findUnique({
-    where : {email}
-  })
+    where: { email },
+  });
 }
-
 
 async function getAll() {
   return db.user.findMany();
 }
 
-async function getUserById(id){
+async function getUserById(id) {
   return db.user.findUnique({
-    where : {id : id},
-  })
+    where: { id: id },
+  });
 }
 
-
-async function updateUser(id,data){
+async function updateUser(id, data) {
   return db.user.update({
-    where : {id : id},
-    data
-  })
+    where: { id: id },
+    data,
+  });
 }
 
-async function deleteUser(id){
-  return db.user.delete({
-    where : {id : id}
-  })
+async function deleteUser(id) {
+  return db.user.update({
+    where: { id: id },
+    data: {
+      isDeactivated: true,
+      isDeleted: true,
+    },
+  });
 }
 
-export default{
+export default {
   createUser,
   getUserByEmail,
   getAll,
   getUserById,
   updateUser,
-  deleteUser
-}
+  deleteUser,
+};
