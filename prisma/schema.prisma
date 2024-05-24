@@ -2,11 +2,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// For local
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
+// For deployment
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("POSTGRES_PRISMA_URL")
+//   directUrl = env("POSTGRES_URL_NON_POOLING")
+// }
 
 model User {
   id                       String              @id @default(uuid())
@@ -20,8 +27,8 @@ model User {
   townshipCode             String
   admin                    Admin               @relation(fields: [adminId], references: [id])
   adminId                  String
-  SendingTransferHistory   Transaction[]       @relation(name: "sender")
-  ReceivingTransferHistory Transaction[]       @relation(name: "receiver")
+  SendingTransferHistory   Transfer[]          @relation(name: "sender")
+  ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
   WithdrawOrDeposit        WithdrawOrDeposit[]
 }
 
@@ -32,12 +39,12 @@ model Admin {
   password          String
   role              String
   isDeactivaed      Boolean             @default(false)
-  Transfer          Transaction[]
+  Transfer          Transfer[]
   WithdrawOrDeposit WithdrawOrDeposit[]
   User              User[]
 }
 
-model Transaction {
+model Transfer {
   id             String   @id @default(uuid())
   sender         User     @relation(name: "sender", fields: [senderId], references: [id])
   receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])

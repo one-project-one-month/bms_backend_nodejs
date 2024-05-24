@@ -30,7 +30,7 @@ CREATE TABLE "Admin" (
 CREATE TABLE "Transfer" (
     "id" TEXT NOT NULL,
     "transferAmount" DOUBLE PRECISION NOT NULL,
-    "note" TEXT NOT NULL,
+    "note" TEXT NOT NULL DEFAULT '',
     "time" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "senderId" TEXT NOT NULL,
     "receiverId" TEXT NOT NULL,
