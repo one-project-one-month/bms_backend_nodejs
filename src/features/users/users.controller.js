@@ -100,6 +100,10 @@ const deactivateUser = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "User not found" });
+      case "DeactivationError":
+        return res
+          .status(httpStatus.ACCEPTED)
+          .json({ message: deactivatedUser.message });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }

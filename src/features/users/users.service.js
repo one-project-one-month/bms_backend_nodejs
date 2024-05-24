@@ -1,12 +1,15 @@
 import db from "../../database/index.js";
+import { newError } from "../../errors/errors.js";
 
 const select = {
   id: true,
   name: true,
   email: true,
   balance: true,
+  isDeleted: true,
   stateCode: true,
   townshipCode: true,
+  isDeactivated: true,
 };
 
 const findAll = async () => {
@@ -43,6 +46,10 @@ const update = async (email, data) => {
 };
 
 const deactivate = async (email) => {
+  const user = await findByEmail(email);
+  if (user.isDeactivated) {
+    return newError("DeactivationError", "User is already deactivaed.");
+  }
   return db.user.update({
     where: { email },
     data: {
