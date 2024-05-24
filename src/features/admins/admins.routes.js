@@ -11,10 +11,15 @@ const router = express.Router();
 // router.get("/:id", adminController.findAdminById);
 router.get("/", adminController.findAllAdmin);
 router.post("/", adminController.createAdmin);
-router.post("/actions", adminActionValidation(), adminController.adminActions);
+router.post(
+  "/actions",
+  body("process").notEmpty().withMessage("Process name required."),
+  adminActionValidation,
+  adminController.adminActions
+);
 router.post(
   "/transactions",
-  body("process").notEmpty(),
+  body("process").notEmpty().withMessage("Process name is required."),
   transactionValidation,
   adminController.transactions
 );

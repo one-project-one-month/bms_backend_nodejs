@@ -45,16 +45,16 @@ model Admin {
 }
 
 model Transfer {
-  id             String   @id @default(uuid())
-  sender         User     @relation(name: "sender", fields: [senderId], references: [id])
-  receiver       User     @relation(name: "receiver", fields: [receiverId], references: [id])
-  transferAmount Float
-  note           String   @default("")
-  time           DateTime @default(now())
-  senderId       String
-  receiverId     String
-  admin          Admin    @relation(fields: [adminId], references: [id])
-  adminId        String
+  id         String   @id @default(uuid())
+  sender     User     @relation(name: "sender", fields: [senderId], references: [id])
+  receiver   User     @relation(name: "receiver", fields: [receiverId], references: [id])
+  amount     Float
+  note       String   @default("")
+  time       DateTime @default(now())
+  senderId   String
+  receiverId String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  adminId    String
 }
 
 model WithdrawOrDeposit {

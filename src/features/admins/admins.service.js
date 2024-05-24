@@ -3,15 +3,17 @@ import { generatePersonalCode } from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
 import transactionProtocol from "../transactions/transactions.protocol.js";
 
-const findAll = async () => {
-  return db.admin.findMany();
+const select = {
+  id: true,
+  name: true,
+  personalCode: true,
+  role: true,
+  isDeactivaed: true,
 };
 
-const findById = async (id) => {
-  return db.admin.findFirstOrThrow({
-    where: {
-      id,
-    },
+const findAll = async () => {
+  return db.admin.findMany({
+    select,
   });
 };
 
@@ -20,6 +22,7 @@ const findByPersonalCode = async (personalCode) => {
     where: {
       personalCode,
     },
+    select,
   });
 };
 
@@ -30,10 +33,10 @@ const create = async (name, password, role) => {
   });
 };
 
-const deactivate = async (id) => {
+const deactivate = async (personalCode) => {
   return db.admin.update({
     where: {
-      id,
+      personalCode,
     },
     data: {
       isDeactivaed: true,
@@ -58,13 +61,13 @@ const transfer = async ({
     receiver.balance + transferAmount
   );
 
-  return await transactionProtocol.makeTransaction(
-    sender.id,
-    receiver.id,
+  return await transactionProtocol.makeTransferTransaction({
+    senderId: sender.id,
+    receiverId: receiver.id,
+    amount: transferAmount,
+    note,
     adminId,
-    transferAmount,
-    note
-  );
+  });
 };
 
 const withdraw = async (email, amount) => {
@@ -73,7 +76,6 @@ const withdraw = async (email, amount) => {
 
 export default {
   findAll,
-  findById,
   findByPersonalCode,
   create,
   deactivate,

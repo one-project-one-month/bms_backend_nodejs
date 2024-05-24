@@ -1,20 +1,37 @@
 import { checkSchema, matchedData } from "express-validator";
 
-const adminActionValidation = () => {
+const validationForDeactivate = () => {
   return checkSchema({
-    id: {
+    managerId: {
       notEmpty: true,
-      errorMessage: "Admin id is required.",
+      errorMessage: "Manager ID is required.",
     },
     process: {
-      notEmpty: {
-        errorMessage: "Process name is required.",
-      },
+      notEmpty: true,
+      errorMessage: "Process name is required.",
     },
     data: {
-      optional: true,
+      notEmpty: true,
+      errorMessage: "Data field is required.",
+    },
+    "data.adminCode": {
+      notEmpty: true,
+      errorMessage: "Admin's personal code is required to deactivate.",
     },
   });
+};
+
+const adminActionValidation = async (req, res, next) => {
+  const { process } = matchedData(req);
+  switch (process) {
+    case "deactivate":
+      await validationForDeactivate().run(req);
+      break;
+    case "search":
+      await validationForDeactivate().run(req);
+      break;
+  }
+  next();
 };
 
 const validationForTransfer = () => {
