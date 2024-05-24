@@ -52,10 +52,12 @@ const transfer = async ({
     sender.email,
     sender.balance - transferAmount
   );
+
   await userProtocol.changeBalance(
     receiver.email,
     receiver.balance + transferAmount
   );
+
   return await transactionProtocol.makeTransaction(
     sender.id,
     receiver.id,
@@ -65,6 +67,10 @@ const transfer = async ({
   );
 };
 
+const withdraw = async (email, amount) => {
+  return userProtocol.withdraw(email, amount);
+};
+
 export default {
   findAll,
   findById,
@@ -72,4 +78,5 @@ export default {
   create,
   deactivate,
   transfer,
+  withdraw,
 };

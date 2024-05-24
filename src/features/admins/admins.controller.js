@@ -165,6 +165,27 @@ const listTransactionsByUserEmail = async (req, res) => {
   return res.status(httpStatus.OK).json({ transactions });
 };
 
+const withdraw = async (req, res) => {
+  const { data } = matchedData(req);
+  const user = await exceptionHandler(adminService.withdraw)(
+    data.userEmail,
+    data.amount
+  );
+  console.info("user in withdraw", user);
+  if (user.isError) {
+    switch (user.name) {
+      case "WithdrawError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: user.message });
+
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
+  }
+  return res.status(httpStatus.OK).end();
+};
+
 const transactions = async (req, res) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
@@ -174,9 +195,10 @@ const transactions = async (req, res) => {
   switch (process) {
     case "transfer":
       return transfer(req, res);
+    case "withdraw":
+      return withdraw(req, res);
     case "list":
       return listTransactionsByUserEmail(req, res);
-
     default:
       return res
         .status(httpStatus.BAD_REQUEST)

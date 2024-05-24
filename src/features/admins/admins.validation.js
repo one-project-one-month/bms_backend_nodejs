@@ -79,11 +79,48 @@ const validationForListOfTransaction = () => {
   });
 };
 
+const validationForWithdrawOrDeposit = () => {
+  return checkSchema({
+    id: {
+      notEmpty: true,
+      errorMessage: "Admin id is required.",
+    },
+    process: {
+      notEmpty: true,
+      errorMessage: "Transfer type if required.",
+    },
+    data: {
+      notEmpty: true,
+      errorMessage: "Data is required.",
+    },
+    "data.userEmail": {
+      notEmpty: true,
+      isEmail: {
+        errorMessage: "Invalid email",
+      },
+    },
+    "data.amount": {
+      notEmpty: true,
+      isDecimal: true,
+      custom: {
+        options: (value) => {
+          return value > 0;
+        },
+        errorMessage: "Invalid amount",
+      },
+      errorMessage: "Invalid amount",
+    },
+  });
+};
+
 const transactionValidation = async (req, res, next) => {
   const { process } = matchedData(req);
   switch (process) {
     case "transfer":
       await validationForTransfer().run(req);
+      break;
+    case "withdraw":
+      await validationForWithdrawOrDeposit().run(req);
       break;
     case "list":
       await validationForListOfTransaction().run(req);
