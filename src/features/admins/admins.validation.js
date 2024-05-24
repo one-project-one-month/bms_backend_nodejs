@@ -6,10 +6,6 @@ const validationForDeactivate = () => {
       notEmpty: true,
       errorMessage: "Manager ID is required.",
     },
-    process: {
-      notEmpty: true,
-      errorMessage: "Process name is required.",
-    },
     data: {
       notEmpty: true,
       errorMessage: "Data field is required.",
