@@ -9,7 +9,7 @@ const resp = apiRes("admins", "Admin");
 
 const findAllAdmin = async (req, res) => {
   let admins = await exceptionHandler(adminService.findAll)();
-  if (admins instanceof Error) {
+  if (admins.isError) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
   }
   admins = admins.map((admin) => resp.one(admin));
@@ -19,7 +19,7 @@ const findAllAdmin = async (req, res) => {
 const findAdminById = async (req, res) => {
   const id = req.params["id"];
   const admin = await exceptionHandler(adminService.findById)(id);
-  if (admin instanceof Error) {
+  if (admin.isError) {
     switch (admin.message) {
       case "No Admin found":
         return res
@@ -39,7 +39,7 @@ const findAdminByCode = async (req, res) => {
   const admin = await exceptionHandler(adminService.findByPersonalCode)(
     data.personalCode
   );
-  if (admin instanceof Error) {
+  if (admin.isError) {
     switch (admin.message) {
       case "No Admin found":
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -64,7 +64,7 @@ const createAdmin = async (req, res) => {
 const deactivateAdmin = async (req, res) => {
   const { id } = matchedData(req);
   const admin = await exceptionHandler(adminService.deactivate)(id);
-  if (admin instanceof Error) {
+  if (admin.isError) {
     switch (admin.name) {
       case "PrismaClientKnownRequestError":
         return res
@@ -117,14 +117,14 @@ const transfer = async (req, res) => {
       .json({ message: "Sender email and receiver email must not be same." });
 
   const sender = await userProtocol.findUserByEmail(senderEmail);
-  if (sender instanceof Error) {
+  if (sender.isError) {
     return res
       .status(httpStatus.BAD_REQUEST)
       .json({ message: `user not found with email: ${senderEmail}` });
   }
 
   const receiver = await userProtocol.findUserByEmail(receiverEmail);
-  if (receiver instanceof Error) {
+  if (receiver.isError) {
     return res
       .status(httpStatus.BAD_REQUEST)
       .json({ message: `user not found with email: ${receiverEmail}` });
@@ -144,7 +144,9 @@ const transfer = async (req, res) => {
     note,
   });
 
-  if (transaction instanceof Error) {
+  console.info("transaction ", transaction);
+
+  if (transaction.isError) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
   }
 
@@ -156,8 +158,8 @@ const transactions = async (req, res) => {
   if (!result.isEmpty()) {
     return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
   }
-  const { type } = matchedData(req);
-  switch (type) {
+  const { process } = matchedData(req);
+  switch (process) {
     case "transfer":
       return transfer(req, res);
 

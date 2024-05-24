@@ -23,7 +23,7 @@ const adminTransactionValidation = () => {
       notEmpty: true,
       errorMessage: "Admin id is required.",
     },
-    type: {
+    process: {
       notEmpty: true,
       errorMessage: "Transfer type if required.",
     },

@@ -48,13 +48,14 @@ const transfer = async ({
   transferAmount,
   note,
 }) => {
-  await userProtocol.changeBalance(sender.id, sender.balance - transferAmount);
-
   await userProtocol.changeBalance(
-    receiver.id,
+    sender.email,
+    sender.balance - transferAmount
+  );
+  await userProtocol.changeBalance(
+    receiver.email,
     receiver.balance + transferAmount
   );
-
   return await transactionProtocol.makeTransaction(
     sender.id,
     receiver.id,
