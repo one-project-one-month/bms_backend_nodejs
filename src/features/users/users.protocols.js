@@ -14,8 +14,11 @@ const changeBalance = async (email, balance) =>
   services.update(email, { balance });
 
 const getTransactionsByEmail = async (email) => {
-  const transactions = await services.getTransactionsByEmail(email);
-  return transactions;
+  const user = await services.getTransactionsByEmail(email);
+  return {
+    sending: user.SendingTransferHistory,
+    receiving: user.ReceivingTransferHistory,
+  };
 };
 
 export default {
