@@ -1,4 +1,4 @@
-import { checkSchema } from "express-validator";
+import { checkSchema, matchedData } from "express-validator";
 
 const adminActionValidation = () => {
   return checkSchema({
@@ -57,7 +57,13 @@ const validationForTransfer = () => {
 };
 
 const transactionValidation = async (req, res, next) => {
-  await validationForTransfer().run(req);
+  const { process } = matchedData(req);
+  console.info("process ", process);
+  switch (process) {
+    case "transfer":
+      await validationForTransfer().run(req);
+      break;
+  }
   next();
 };
 
