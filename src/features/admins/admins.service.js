@@ -1,5 +1,7 @@
 import db from "../../database/index.js";
 import { generatePersonalCode } from "./admins.handler.js";
+import userProtocol from "../users/users.protocols.js";
+import transactionProtocol from "../transactions/transactions.protocol.js";
 
 const findAll = async () => {
   return db.admin.findMany();
@@ -39,10 +41,34 @@ const deactivate = async (id) => {
   });
 };
 
+const transfer = async ({
+  sender,
+  receiver,
+  adminId,
+  transferAmount,
+  note,
+}) => {
+  await userProtocol.changeBalance(sender.id, sender.balance - transferAmount);
+
+  await userProtocol.changeBalance(
+    receiver.id,
+    receiver.balance + transferAmount
+  );
+
+  return await transactionProtocol.makeTransaction(
+    sender.id,
+    receiver.id,
+    adminId,
+    transferAmount,
+    note
+  );
+};
+
 export default {
   findAll,
   findById,
   findByPersonalCode,
   create,
   deactivate,
+  transfer,
 };

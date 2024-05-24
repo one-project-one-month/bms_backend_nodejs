@@ -4,7 +4,6 @@ import { apiRes } from "../../response/response.js";
 import adminService from "./admins.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
 import userProtocol from "../users/users.protocols.js";
-import transactionProtocol from "../transactions/transactions.protocol.js";
 
 const resp = apiRes("admins", "Admin");
 
@@ -102,6 +101,18 @@ const transfer = async (req, res) => {
   const { id, data } = matchedData(req);
   const { senderEmail, receiverEmail, transferAmount, note } = data;
 
+  if (!senderEmail) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: "Sender email must be not empty." });
+  }
+
+  if (!receiverEmail) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: "Receiver email must be not empty." });
+  }
+
   if (senderEmail === receiverEmail)
     return res
       .status(httpStatus.BAD_REQUEST)
@@ -127,20 +138,17 @@ const transfer = async (req, res) => {
     });
   }
 
-  await userProtocol.changeBalance(sender.id, sender.balance - transferAmount);
-
-  await userProtocol.changeBalance(
-    receiver.id,
-    receiver.balance + transferAmount
-  );
-
-  await transactionProtocol.makeTransaction(
-    sender.id,
-    receiver.id,
-    id,
+  const transaction = await exceptionHandler(adminService.transfer)({
+    sender,
+    receiver,
+    adminId: id,
     transferAmount,
-    note
-  );
+    note,
+  });
+
+  if (transaction instanceof Error) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  }
 
   return res.status(httpStatus.OK).end();
 };
