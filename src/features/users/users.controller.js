@@ -8,8 +8,7 @@ const resp = apiRes("users", "User");
 
 const findAllUsers = async (req, res) => {
   let users = await exceptionHandler(userServices.findAll)();
-  if (users instanceof Error)
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  if (users.isError) return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
   users = users.map((user) => resp.one(user));
   return res.status(httpStatus.OK).json(resp.collection(users));
 };
@@ -17,7 +16,7 @@ const findAllUsers = async (req, res) => {
 const findUserById = async (req, res) => {
   const id = req.params["id"];
   const data = await exceptionHandler(userServices.findById)(id);
-  if (data instanceof Error) {
+  if (data.isError) {
     console.info("data in ", data.message);
     switch (data.message) {
       case "No User found":
@@ -36,7 +35,7 @@ const findUserById = async (req, res) => {
 const findUserByEmail = async (req, res) => {
   const { email } = matchedData(req);
   const user = await exceptionHandler(userServices.findByEmail)(email);
-  if (user instanceof Error) {
+  if (user.isError) {
     switch (user.name) {
       case "NotFoundError":
         return res
@@ -56,7 +55,7 @@ const createUser = async (req, res) => {
   if (result.isEmpty()) {
     const data = matchedData(req);
     const newUser = await exceptionHandler(userServices.create)(data);
-    if (newUser instanceof Error) {
+    if (newUser.isError) {
       return res
         .status(httpStatus.INTERNAL_SERVER_ERROR)
         .json({ message: newUser.message });
@@ -74,12 +73,12 @@ const updateUser = async (req, res) => {
       email,
       data
     );
-    if (updatedUser instanceof Error) {
+    if (updatedUser.isError) {
       switch (updatedUser.name) {
         case "PrismaClientKnownRequestError":
           return res
             .status(httpStatus.BAD_REQUEST)
-            .json({ errors: "User not found" });
+            .json({ message: `User not found with email ${email}` });
 
         default:
           return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
@@ -87,7 +86,7 @@ const updateUser = async (req, res) => {
     }
     return res.status(httpStatus.OK).json(resp.one(updatedUser));
   }
-  return res.status(httpStatus.BAD_REQUEST).json({ errors: result.array() });
+  return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
 const deactivateUser = async (req, res) => {
@@ -95,7 +94,7 @@ const deactivateUser = async (req, res) => {
   const deactivatedUser = await exceptionHandler(userServices.deactivate)(
     email
   );
-  if (deactivatedUser instanceof Error) {
+  if (deactivatedUser.isError) {
     switch (deactivatedUser.name) {
       case "PrismaClientKnownRequestError":
         return res
@@ -111,7 +110,7 @@ const deactivateUser = async (req, res) => {
 const activateUser = async (req, res) => {
   const { email } = matchedData(req);
   const activatedUser = await exceptionHandler(userServices.activate)(email);
-  if (activatedUser instanceof Error) {
+  if (activatedUser.isError) {
     switch (activatedUser.name) {
       case "PrismaClientKnownRequestError":
         return res
@@ -149,7 +148,7 @@ const userActions = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { email } = matchedData(req);
   const deletedUser = await exceptionHandler(userServices.remove)(email);
-  if (deletedUser instanceof Error) {
+  if (deletedUser.isError) {
     switch (deletedUser.name) {
       case "PrismaClientKnownRequestError":
         return res
