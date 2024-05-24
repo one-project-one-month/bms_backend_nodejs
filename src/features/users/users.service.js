@@ -48,7 +48,7 @@ const update = async (email, data) => {
 const deactivate = async (email) => {
   const user = await findByEmail(email);
   if (user.isDeactivated) {
-    return newError("DeactivationError", "User is already deactivaed.");
+    return newError("DeactivationError", "User is already deactivated.");
   }
   return db.user.update({
     where: { email },
@@ -59,6 +59,10 @@ const deactivate = async (email) => {
 };
 
 const activate = async (email) => {
+  const user = await findByEmail(email);
+  if (!user.isDeactivated) {
+    return newError("ActivationError", "User is already activated.");
+  }
   return db.user.update({
     where: { email },
     data: {

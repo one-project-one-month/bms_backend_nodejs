@@ -120,6 +120,10 @@ const activateUser = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "User not found" });
+      case "ActivationError":
+        return res
+          .status(httpStatus.ACCEPTED)
+          .json({ message: activatedUser.message });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
