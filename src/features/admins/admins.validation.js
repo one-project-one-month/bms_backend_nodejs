@@ -31,12 +31,20 @@ const adminTransactionValidation = () => {
       notEmpty: true,
       errorMessage: "Data is required.",
     },
+    "data.userEmail": {
+      optional: true,
+      isEmail: {
+        errorMessage: "Invalid email.",
+      },
+    },
     "data.senderEmail": {
+      optional: true,
       isEmail: {
         errorMessage: "Invalid email",
       },
     },
     "data.receiverEmail": {
+      optional: true,
       isEmail: {
         errorMessage: "Invalid email",
       },
