@@ -27,40 +27,33 @@ const findByEmail = async (email) => {
   });
 };
 
-const create = async ({
-  name,
-  password,
-  email,
-  stateCode,
-  townshipCode,
-  adminId,
-}) => {
+const create = async (data) => {
   return db.user.create({
-    data: { name, email, password, stateCode, townshipCode, adminId },
-    select: select,
-  });
-};
-
-const update = async (id, data) => {
-  return db.user.update({
-    where: { id },
     data,
     select: select,
   });
 };
 
-const deactivate = async (id) => {
+const update = async (email, data) => {
   return db.user.update({
-    where: { id },
+    where: { email },
+    data,
+    select: select,
+  });
+};
+
+const deactivate = async (email) => {
+  return db.user.update({
+    where: { email },
     data: {
       isDeactivated: true,
     },
   });
 };
 
-const remove = async (id) => {
+const remove = async (email) => {
   return db.user.update({
-    where: { id },
+    where: { email },
     data: {
       isDeleted: true,
       isDeactivated: true,

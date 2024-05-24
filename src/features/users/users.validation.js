@@ -2,9 +2,13 @@ import { checkSchema } from "express-validator";
 
 const updateUserValidation = () => {
   return checkSchema({
-    id: {
-      notEmpty: true,
-      errorMessage: "User id is required.",
+    email: {
+      notEmpty: {
+        errorMessage: "User email is required.",
+      },
+      isEmail: {
+        errorMessage: "Invalid email.",
+      },
     },
     data: {
       notEmpty: true,
@@ -84,17 +88,20 @@ const createUserValidation = () => {
 
 const userActionsValidation = () => {
   return checkSchema({
-    id: {
+    email: {
+      notEmpty: {
+        errorMessage: "User email is required.",
+      },
+      isEmail: {
+        errorMessage: "Invalid email.",
+      },
+    },
+    process: {
       notEmpty: true,
-      errorMessage: "User id is required.",
+      errorMessage: "Process name is required.",
     },
     data: {
-      notEmpty: true,
-      errorMessage: "Data is required.",
-    },
-    "data.name": {
-      notEmpty: true,
-      errorMessage: "Action name is required.",
+      optional: true,
     },
   });
 };

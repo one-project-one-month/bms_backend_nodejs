@@ -7,10 +7,6 @@ import { apiRes } from "../../response/response.js";
 const resp = apiRes("users", "User");
 
 const findAllUsers = async (req, res) => {
-  const email = req.query["email"];
-  if (email) {
-    return findUserByEmail(req, res);
-  }
   let users = await exceptionHandler(userServices.findAll)();
   if (users instanceof Error)
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
@@ -38,7 +34,7 @@ const findUserById = async (req, res) => {
 };
 
 const findUserByEmail = async (req, res) => {
-  const email = req.query["email"];
+  const { email } = matchedData(req);
   const user = await exceptionHandler(userServices.findByEmail)(email);
   if (user instanceof Error) {
     switch (user.name) {
@@ -73,8 +69,11 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
-    const { id, data } = matchedData(req);
-    const updatedUser = await exceptionHandler(userServices.update)(id, data);
+    const { email, data } = matchedData(req);
+    const updatedUser = await exceptionHandler(userServices.update)(
+      email,
+      data
+    );
     if (updatedUser instanceof Error) {
       switch (updatedUser.name) {
         case "PrismaClientKnownRequestError":
@@ -92,8 +91,10 @@ const updateUser = async (req, res) => {
 };
 
 const deactivateUser = async (req, res) => {
-  const { id } = matchedData(req);
-  const deactivatedUser = await exceptionHandler(userServices.deactivate)(id);
+  const { email } = matchedData(req);
+  const deactivatedUser = await exceptionHandler(userServices.deactivate)(
+    email
+  );
   if (deactivatedUser instanceof Error) {
     switch (deactivatedUser.name) {
       case "PrismaClientKnownRequestError":
@@ -104,30 +105,32 @@ const deactivateUser = async (req, res) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(httpStatus.ACCEPTED).end();
+  return res.status(httpStatus.OK).end();
 };
 
 const userActions = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
-    const { data } = matchedData(req);
-    switch (data.name) {
+    const { process } = matchedData(req);
+    switch (process) {
       case "deactivate":
         return deactivateUser(req, res);
       case "delete":
         return deleteUser(req, res);
+      case "search":
+        return findUserByEmail(req, res);
       default:
         return res
           .status(httpStatus.METHOD_NOT_ALLOWED)
-          .json({ message: "Invalid action name" });
+          .json({ message: "Invalid process." });
     }
   }
   return res.status(httpStatus.BAD_REQUEST).json({ errors: result.array() });
 };
 
 const deleteUser = async (req, res) => {
-  const { id } = matchedData(req);
-  const deletedUser = await exceptionHandler(userServices.remove)(id);
+  const { email } = matchedData(req);
+  const deletedUser = await exceptionHandler(userServices.remove)(email);
   if (deletedUser instanceof Error) {
     switch (deletedUser.name) {
       case "PrismaClientKnownRequestError":
@@ -138,7 +141,7 @@ const deleteUser = async (req, res) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(httpStatus.ACCEPTED).end();
+  return res.status(httpStatus.OK).end();
 };
 
 export default {
