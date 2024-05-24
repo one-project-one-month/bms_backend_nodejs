@@ -7,9 +7,9 @@ import {
 
 const router = express.Router();
 
+// router.get("/:id", adminController.findAdminById);
 router.get("/", adminController.findAllAdmin);
 router.post("/", adminController.createAdmin);
-// router.get("/:id", adminController.findAdminById);
 router.post("/actions", adminActionValidation(), adminController.adminActions);
 router.post(
   "/transactions",

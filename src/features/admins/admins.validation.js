@@ -6,13 +6,13 @@ const adminActionValidation = () => {
       notEmpty: true,
       errorMessage: "Admin id is required.",
     },
-    data: {
-      notEmpty: true,
-      errorMessage: "Data is required.",
+    process: {
+      notEmpty: {
+        errorMessage: "Process name is required.",
+      },
     },
-    "data.name": {
-      notEmpty: true,
-      errorMessage: "Action name is required.",
+    data: {
+      optional: true,
     },
   });
 };

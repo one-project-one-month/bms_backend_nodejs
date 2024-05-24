@@ -8,10 +8,6 @@ import userProtocol from "../users/users.protocols.js";
 const resp = apiRes("admins", "Admin");
 
 const findAllAdmin = async (req, res) => {
-  const personalCode = req.query["search"];
-  if (personalCode) {
-    return findAdminByCode(req, res);
-  }
   let admins = await exceptionHandler(adminService.findAll)();
   if (admins instanceof Error) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
@@ -39,15 +35,15 @@ const findAdminById = async (req, res) => {
 };
 
 const findAdminByCode = async (req, res) => {
-  const personalCode = req.query["search"];
+  const { data } = matchedData(req);
   const admin = await exceptionHandler(adminService.findByPersonalCode)(
-    personalCode
+    data.personalCode
   );
   if (admin instanceof Error) {
     switch (admin.message) {
       case "No Admin found":
         return res.status(httpStatus.BAD_REQUEST).json({
-          message: `not found admin with personal code: ${personalCode}`,
+          message: `not found admin with personal code: ${data.personalCode}`,
         });
       default:
         return res
@@ -84,10 +80,12 @@ const deactivateAdmin = async (req, res) => {
 const adminActions = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
-    const { data } = matchedData(req);
-    switch (data.name) {
+    const { process } = matchedData(req);
+    switch (process) {
       case "deactivate":
         return deactivateAdmin(req, res);
+      case "search":
+        return findAdminByCode(req, res);
       default:
         return res
           .status(httpStatus.BAD_REQUEST)
