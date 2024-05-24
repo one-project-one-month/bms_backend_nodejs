@@ -48,6 +48,12 @@ const validationForTransfer = () => {
       isDecimal: {
         errorMessage: "Invalid transfer amount. It must be decimal.",
       },
+      custom: {
+        options: (value) => {
+          return value > 0;
+        },
+        errorMessage: "Invalid amount",
+      },
     },
     "data.note": {
       optional: true,
