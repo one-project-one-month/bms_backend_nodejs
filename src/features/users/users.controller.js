@@ -2,34 +2,11 @@ import { matchedData, validationResult } from "express-validator";
 import httpStatus from "http-status-codes";
 import userServices from "./users.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
-import { apiRes } from "../../response/response.js";
-
-const resp = apiRes("users", "User");
 
 const findAllUsers = async (req, res) => {
   let users = await exceptionHandler(userServices.findAll)();
   if (users.isError) return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-  users = users.map((user) => resp.one(user));
-  return res.status(httpStatus.OK).json(resp.collection(users));
-};
-
-const findUserById = async (req, res) => {
-  const id = req.params["id"];
-  const data = await exceptionHandler(userServices.findById)(id);
-  if (data.isError) {
-    console.info("data in ", data.message);
-    switch (data.message) {
-      case "No User found":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: `not user found with id ${id}` });
-      default:
-        return res
-          .status(httpStatus.INTERNAL_SERVER_ERROR)
-          .json({ message: "something went wrong!!!!" });
-    }
-  }
-  return res.status(httpStatus.OK).json(data);
+  return res.status(httpStatus.OK).json({ data: users });
 };
 
 const findUserByEmail = async (req, res) => {
@@ -40,14 +17,12 @@ const findUserByEmail = async (req, res) => {
       case "NotFoundError":
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: user.message });
+          .json({ message: `User not found with email ${email}` });
       default:
-        return res
-          .status(httpStatus.INTERNAL_SERVER_ERROR)
-          .json({ message: "something went wrong!!!!" });
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(httpStatus.OK).json(resp.one(user));
+  return res.status(httpStatus.OK).json({ data: user });
 };
 
 const createUser = async (req, res) => {
@@ -56,11 +31,16 @@ const createUser = async (req, res) => {
     const data = matchedData(req);
     const newUser = await exceptionHandler(userServices.create)(data);
     if (newUser.isError) {
-      return res
-        .status(httpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: newUser.message });
+      switch (newUser.name) {
+        case "PrismaClientKnownRequestError":
+          return res
+            .status(httpStatus.BAD_REQUEST)
+            .json({ message: "Admin id is wrong" });
+        default:
+          return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+      }
     }
-    return res.status(httpStatus.OK).json(resp.one(newUser));
+    return res.status(httpStatus.CREATED).json({ data: newUser });
   }
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
@@ -84,7 +64,7 @@ const updateUser = async (req, res) => {
           return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
       }
     }
-    return res.status(httpStatus.OK).json(resp.one(updatedUser));
+    return res.status(httpStatus.OK).json({ data: updatedUser });
   }
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
@@ -96,10 +76,10 @@ const deactivateUser = async (req, res) => {
   );
   if (deactivatedUser.isError) {
     switch (deactivatedUser.name) {
-      case "PrismaClientKnownRequestError":
+      case "NotFoundError":
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: "User not found" });
+          .json({ message: `User not found with email ${email}` });
       case "DeactivationError":
         return res
           .status(httpStatus.ACCEPTED)
@@ -116,10 +96,10 @@ const activateUser = async (req, res) => {
   const activatedUser = await exceptionHandler(userServices.activate)(email);
   if (activatedUser.isError) {
     switch (activatedUser.name) {
-      case "PrismaClientKnownRequestError":
+      case "NotFoundError":
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: "User not found" });
+          .json({ message: `User not found with email ${email}` });
       case "ActivationError":
         return res
           .status(httpStatus.ACCEPTED)
@@ -150,7 +130,7 @@ const userActions = async (req, res) => {
           .json({ message: "Invalid process." });
     }
   }
-  return res.status(httpStatus.BAD_REQUEST).json({ errors: result.array() });
+  return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
 const deleteUser = async (req, res) => {
@@ -171,7 +151,6 @@ const deleteUser = async (req, res) => {
 
 export default {
   findAllUsers,
-  findUserById,
   createUser,
   updateUser,
   deleteUser,

@@ -6,20 +6,15 @@ const select = {
   name: true,
   email: true,
   balance: true,
-  isDeleted: true,
   stateCode: true,
   townshipCode: true,
+  isDeleted: true,
   isDeactivated: true,
 };
 
 const findAll = async () => {
-  return db.user.findMany();
-};
-
-const findById = async (id) => {
-  return db.user.findFirstOrThrow({
-    where: { id },
-    select: select,
+  return db.user.findMany({
+    select,
   });
 };
 
@@ -116,7 +111,6 @@ const getTransactionsByEmail = async (email) => {
 
 export default {
   findAll,
-  findById,
   findByEmail,
   create,
   update,
