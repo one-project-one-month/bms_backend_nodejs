@@ -108,6 +108,22 @@ const deactivateUser = async (req, res) => {
   return res.status(httpStatus.OK).end();
 };
 
+const activateUser = async (req, res) => {
+  const { email } = matchedData(req);
+  const activatedUser = await exceptionHandler(userServices.activate)(email);
+  if (activatedUser instanceof Error) {
+    switch (activatedUser.name) {
+      case "PrismaClientKnownRequestError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "User not found" });
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
+  }
+  return res.status(httpStatus.OK).end();
+};
+
 const userActions = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
@@ -115,6 +131,8 @@ const userActions = async (req, res) => {
     switch (process) {
       case "deactivate":
         return deactivateUser(req, res);
+      case "activate":
+        return activateUser(req, res);
       case "delete":
         return deleteUser(req, res);
       case "search":

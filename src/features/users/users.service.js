@@ -51,6 +51,16 @@ const deactivate = async (email) => {
   });
 };
 
+const activate = async (email) => {
+  return db.user.update({
+    where: { email },
+    data: {
+      isDeactivated: false,
+      isDeleted: false,
+    },
+  });
+};
+
 const remove = async (email) => {
   return db.user.update({
     where: { email },
@@ -68,5 +78,6 @@ export default {
   create,
   update,
   deactivate,
+  activate,
   remove,
 };
