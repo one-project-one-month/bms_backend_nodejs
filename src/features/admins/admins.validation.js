@@ -17,7 +17,7 @@ const adminActionValidation = () => {
   });
 };
 
-const adminTransactionValidation = () => {
+const validationForTransfer = () => {
   return checkSchema({
     id: {
       notEmpty: true,
@@ -31,25 +31,20 @@ const adminTransactionValidation = () => {
       notEmpty: true,
       errorMessage: "Data is required.",
     },
-    "data.userEmail": {
-      optional: true,
-      isEmail: {
-        errorMessage: "Invalid email.",
-      },
-    },
     "data.senderEmail": {
-      optional: true,
+      notEmpty: true,
       isEmail: {
         errorMessage: "Invalid email",
       },
     },
     "data.receiverEmail": {
-      optional: true,
+      notEmpty: true,
       isEmail: {
         errorMessage: "Invalid email",
       },
     },
     "data.transferAmount": {
+      notEmpty: true,
       isDecimal: {
         errorMessage: "Invalid transfer amount. It must be decimal.",
       },
@@ -61,4 +56,9 @@ const adminTransactionValidation = () => {
   });
 };
 
-export { adminActionValidation, adminTransactionValidation };
+const transactionValidation = async (req, res, next) => {
+  await validationForTransfer().run(req);
+  next();
+};
+
+export { adminActionValidation, transactionValidation };

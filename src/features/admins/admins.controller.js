@@ -5,15 +5,15 @@ import adminService from "./admins.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
 import userProtocol from "../users/users.protocols.js";
 
-const resp = apiRes("admins", "Admin");
+const respAdmin = apiRes("admins", "Admin");
 
 const findAllAdmin = async (req, res) => {
   let admins = await exceptionHandler(adminService.findAll)();
   if (admins.isError) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
   }
-  admins = admins.map((admin) => resp.one(admin));
-  return res.status(httpStatus.OK).json(resp.collection(admins));
+  admins = admins.map((admin) => respAdmin.one(admin));
+  return res.status(httpStatus.OK).json(respAdmin.collection(admins));
 };
 
 const findAdminById = async (req, res) => {
@@ -31,7 +31,7 @@ const findAdminById = async (req, res) => {
           .json({ message: "something went wrong!!!!" });
     }
   }
-  return res.status(httpStatus.OK).json(resp.one(admin));
+  return res.status(httpStatus.OK).json(respAdmin.one(admin));
 };
 
 const findAdminByCode = async (req, res) => {
@@ -51,14 +51,14 @@ const findAdminByCode = async (req, res) => {
           .json({ message: "something went wrong!!!!" });
     }
   }
-  return res.status(httpStatus.OK).json(resp.one(admin));
+  return res.status(httpStatus.OK).json(respAdmin.one(admin));
 };
 
 const createAdmin = async (req, res) => {
   const { name, password, role } = req.body;
   const admin = await adminService.create(name, password, role);
   if (!admin) return res.status(500).json({ msg: "Internal server error" });
-  return res.status(201).json(resp.one(admin));
+  return res.status(201).json(respAdmin.one(admin));
 };
 
 const deactivateAdmin = async (req, res) => {
@@ -74,7 +74,7 @@ const deactivateAdmin = async (req, res) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(200).json(resp.one(admin));
+  return res.status(200).json(respAdmin.one(admin));
 };
 
 const adminActions = async (req, res) => {
@@ -144,13 +144,25 @@ const transfer = async (req, res) => {
     note,
   });
 
-  console.info("transaction ", transaction);
-
   if (transaction.isError) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
   }
 
   return res.status(httpStatus.OK).end();
+};
+
+const listTransactionsByUserEmail = async (req, res) => {
+  const { userEmail } = matchedData(req);
+
+  const transactions = await exceptionHandler(
+    userProtocol.getTransactionsByEmail
+  )(userEmail);
+
+  if (transactions.isError) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  }
+
+  return res.status(httpStatus.OK).json({ transactions });
 };
 
 const transactions = async (req, res) => {
@@ -162,6 +174,8 @@ const transactions = async (req, res) => {
   switch (process) {
     case "transfer":
       return transfer(req, res);
+    case "list":
+      return listTransactionsByUserEmail(req, res);
 
     default:
       return res

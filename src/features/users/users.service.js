@@ -82,6 +82,16 @@ const remove = async (email) => {
   });
 };
 
+const getTransactionsByEmail = async (email) => {
+  return db.user.findFirstOrThrow({
+    where: { email },
+    include: {
+      SendingTransferHistory: true,
+      ReceivingTransferHistory: true,
+    },
+  });
+};
+
 export default {
   findAll,
   findById,
@@ -91,4 +101,5 @@ export default {
   deactivate,
   activate,
   remove,
+  getTransactionsByEmail,
 };

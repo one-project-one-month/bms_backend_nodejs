@@ -2,8 +2,9 @@ import express from "express";
 import adminController from "./admins.controller.js";
 import {
   adminActionValidation,
-  adminTransactionValidation,
+  transactionValidation,
 } from "./admins.validation.js";
+import { body } from "express-validator";
 
 const router = express.Router();
 
@@ -13,7 +14,8 @@ router.post("/", adminController.createAdmin);
 router.post("/actions", adminActionValidation(), adminController.adminActions);
 router.post(
   "/transactions",
-  adminTransactionValidation(),
+  body("process").notEmpty(),
+  transactionValidation,
   adminController.transactions
 );
 

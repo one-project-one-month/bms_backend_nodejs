@@ -9,10 +9,16 @@ const findUserByEmail = async (email) => {
     return newError(error.name, error.message);
   }
 };
+
 const changeBalance = async (email, balance) =>
   services.update(email, { balance });
+
+const getTransactionsByEmail = async (email) => {
+  return services.getTransactionsByEmail(email);
+};
 
 export default {
   findUserByEmail,
   changeBalance,
+  getTransactionsByEmail,
 };
