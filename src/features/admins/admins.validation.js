@@ -56,12 +56,37 @@ const validationForTransfer = () => {
   });
 };
 
+const validationForListOfTransaction = () => {
+  return checkSchema({
+    id: {
+      notEmpty: true,
+      errorMessage: "Admin id is required.",
+    },
+    process: {
+      notEmpty: true,
+      errorMessage: "Transfer type if required.",
+    },
+    data: {
+      notEmpty: true,
+      errorMessage: "Data is required.",
+    },
+    "data.userEmail": {
+      notEmpty: true,
+      isEmail: {
+        errorMessage: "Invalid email",
+      },
+    },
+  });
+};
+
 const transactionValidation = async (req, res, next) => {
   const { process } = matchedData(req);
-  console.info("process ", process);
   switch (process) {
     case "transfer":
       await validationForTransfer().run(req);
+      break;
+    case "list":
+      await validationForListOfTransaction().run(req);
       break;
   }
   next();
