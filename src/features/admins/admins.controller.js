@@ -152,11 +152,11 @@ const transfer = async (req, res) => {
 };
 
 const listTransactionsByUserEmail = async (req, res) => {
-  const { userEmail } = matchedData(req);
-
+  const { data } = matchedData(req);
+  console.info("user email ", data.userEmail);
   const transactions = await exceptionHandler(
     userProtocol.getTransactionsByEmail
-  )(userEmail);
+  )(data.userEmail);
 
   if (transactions.isError) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
