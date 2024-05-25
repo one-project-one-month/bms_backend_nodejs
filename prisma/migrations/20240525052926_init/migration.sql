@@ -29,7 +29,7 @@ CREATE TABLE "Admin" (
 -- CreateTable
 CREATE TABLE "Transfer" (
     "id" TEXT NOT NULL,
-    "transferAmount" DOUBLE PRECISION NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT NOT NULL DEFAULT '',
     "time" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "senderId" TEXT NOT NULL,
