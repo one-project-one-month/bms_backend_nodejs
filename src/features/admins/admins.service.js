@@ -46,12 +46,37 @@ const deactivate = async (personalCode) => {
 };
 
 const transfer = async ({
-  sender,
-  receiver,
-  adminId,
+  senderEmail,
+  receiverEmail,
   transferAmount,
   note,
+  adminId,
 }) => {
+  if (senderEmail === receiverEmail)
+    return newError(
+      "TransactionError",
+      "Sender and receiver must not be same."
+    );
+
+  const sender = await userProtocol.findUserByEmail(senderEmail);
+  if (!sender) {
+    return newError(
+      "UserNotExistError",
+      `Sender with email ${senderEmail} is not exist.`
+    );
+  }
+
+  const receiver = await userProtocol.findUserByEmail(receiverEmail);
+  if (!receiver) {
+    return newError(
+      "UserNotExistError",
+      `Receiver with email ${receiverEmail} is not exist.`
+    );
+  }
+
+  if (sender.balance < transferAmount) {
+    return newError("InsufficientBalanceError", "Insufficient balance.");
+  }
   await userProtocol.changeBalance(
     sender.email,
     sender.balance - transferAmount
@@ -100,6 +125,10 @@ const userCreation = async (data) => {
   return newUser;
 };
 
+const getTransactionsByEmail = async (email) => {
+  return userProtocol.getTransactionsByEmail(email);
+};
+
 export default {
   findAll,
   findByPersonalCode,
@@ -109,4 +138,5 @@ export default {
   withdraw,
   deposit,
   userCreation,
+  getTransactionsByEmail,
 };

@@ -2,7 +2,6 @@ import httpStatus from "http-status-codes";
 import { matchedData, validationResult } from "express-validator";
 import adminService from "./admins.service.js";
 import { exceptionHandler } from "../../handlers/exception.js";
-import userProtocol from "../users/users.protocols.js";
 
 const findAllAdmin = async (req, res) => {
   let admins = await exceptionHandler(adminService.findAll)();
@@ -75,56 +74,33 @@ const adminActions = async (req, res) => {
 
 const transfer = async (req, res) => {
   const { adminId, data } = matchedData(req);
-  const { senderEmail, receiverEmail, transferAmount, note } = data;
-
-  if (senderEmail === receiverEmail)
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: "Sender email and receiver email must not be same." });
-
-  const sender = await userProtocol.findUserByEmail(senderEmail);
-  if (sender.isError) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: `user not found with email: ${senderEmail}` });
-  }
-
-  const receiver = await userProtocol.findUserByEmail(receiverEmail);
-  if (receiver.isError) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: `user not found with email: ${receiverEmail}` });
-  }
-
-  if (sender.balance < transferAmount) {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      message: "Sender's balance must be greater than transfer amount.",
-    });
-  }
 
   const transaction = await exceptionHandler(adminService.transfer)({
-    sender,
-    receiver,
+    ...data,
     adminId,
-    transferAmount,
-    note,
   });
 
   if (transaction.isError) {
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    switch (transaction.name) {
+      case "UserNotExistError":
+      case "InsufficientBalanceError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: transaction.message });
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
   }
-
   return res.status(httpStatus.OK).end();
 };
 
 const listTransactionsByUserEmail = async (req, res) => {
   const { data } = matchedData(req);
   const transactions = await exceptionHandler(
-    userProtocol.getTransactionsByEmail
+    adminService.getTransactionsByEmail
   )(data.userEmail);
 
   if (transactions.isError) {
-    console.log("error in transaction ", transactions);
     switch (transactions.name) {
       case "NotFoundError":
         return res
