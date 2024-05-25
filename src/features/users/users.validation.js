@@ -54,16 +54,6 @@ const createUserValidation = () => {
       notEmpty: true,
       errorMessage: "User name is required.",
     },
-    password: {
-      notEmpty: true,
-      isStrongPassword: true,
-      isLength: {
-        options: { min: 8 },
-        errorMessage: "Password must be at least 8 characters.",
-      },
-      errorMessage:
-        "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
-    },
     email: {
       notEmpty: {
         errorMessage: "Email must not empty.",

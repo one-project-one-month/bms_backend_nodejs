@@ -1,34 +1,19 @@
 import db from "../../database/index.js";
 import { newError } from "../../errors/errors.js";
 
-const select = {
-  id: true,
-  name: true,
-  email: true,
-  balance: true,
-  stateCode: true,
-  townshipCode: true,
-  isDeleted: true,
-  isDeactivated: true,
-};
-
 const findAll = async () => {
-  return db.user.findMany({
-    select,
-  });
+  return db.user.findMany({});
 };
 
 const findByEmail = async (email) => {
   return db.user.findUniqueOrThrow({
     where: { email },
-    select: select,
   });
 };
 
 const create = async (data) => {
   return db.user.create({
     data,
-    select: select,
   });
 };
 
@@ -36,7 +21,6 @@ const update = async (email, data) => {
   return db.user.update({
     where: { email },
     data,
-    select: select,
   });
 };
 
