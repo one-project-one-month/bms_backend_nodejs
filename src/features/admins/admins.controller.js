@@ -77,18 +77,6 @@ const transfer = async (req, res) => {
   const { adminId, data } = matchedData(req);
   const { senderEmail, receiverEmail, transferAmount, note } = data;
 
-  if (!senderEmail) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: "Sender email must be not empty." });
-  }
-
-  if (!receiverEmail) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: "Receiver email must be not empty." });
-  }
-
   if (senderEmail === receiverEmail)
     return res
       .status(httpStatus.BAD_REQUEST)

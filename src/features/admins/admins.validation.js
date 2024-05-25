@@ -45,19 +45,22 @@ const validationForTransfer = () => {
       errorMessage: "Data is required.",
     },
     "data.senderEmail": {
-      notEmpty: true,
+      notEmpty: {
+        errorMessage: "Sender email must not be empty.",
+      },
       isEmail: {
-        errorMessage: "Invalid email",
+        errorMessage: "Invalid email.",
       },
     },
     "data.receiverEmail": {
-      notEmpty: true,
+      notEmpty: {
+        errorMessage: "Receiver email must not be empty.",
+      },
       isEmail: {
         errorMessage: "Invalid email",
       },
     },
     "data.transferAmount": {
-      notEmpty: true,
       isDecimal: {
         errorMessage: "Invalid transfer amount. It must be decimal.",
       },
@@ -65,7 +68,7 @@ const validationForTransfer = () => {
         options: (value) => {
           return value > 0;
         },
-        errorMessage: "Invalid amount",
+        errorMessage: "Amount must be greater than 0.",
       },
     },
     "data.note": {
