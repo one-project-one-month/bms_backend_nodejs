@@ -81,6 +81,19 @@ const getTransactionsByEmail = async (email) => {
   return db.user.findFirstOrThrow({
     where: { email },
     include: {
+      WithdrawOrDeposit: {
+        select: {
+          id: true,
+          amount: true,
+          time: true,
+          type: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
       SendingTransferHistory: {
         select: {
           id: true,

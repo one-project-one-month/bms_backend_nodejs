@@ -18,6 +18,7 @@ const getTransactionsByEmail = async (email) => {
   return {
     sending: user.SendingTransferHistory,
     receiving: user.ReceivingTransferHistory,
+    withdrawOrDeposit: user.WithdrawOrDeposit,
   };
 };
 
