@@ -26,15 +26,18 @@ const update = async (email, data) => {
 
 const deactivate = async (email) => {
   const user = await findByEmail(email);
-  if (user.isDeactivated) {
-    return newError("DeactivationError", "User is already deactivated.");
+  if (user) {
+    if (user.isDeactivated) {
+      return newError("DeactivationError", "User is already deactivated.");
+    }
+    return db.user.update({
+      where: { email },
+      data: {
+        isDeactivated: true,
+      },
+    });
   }
-  return db.user.update({
-    where: { email },
-    data: {
-      isDeactivated: true,
-    },
-  });
+  return newError("NotFoundError", `User not found with email ${email}`);
 };
 
 const activate = async (email) => {

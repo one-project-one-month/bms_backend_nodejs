@@ -11,16 +11,11 @@ const findAllUsers = async (req, res) => {
 
 const findUserByEmail = async (req, res) => {
   const { email } = matchedData(req);
-  const user = await exceptionHandler(userServices.findByEmail)(email);
-  if (user.isError) {
-    switch (user.name) {
-      case "NotFoundError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: `User not found with email ${email}` });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-    }
+  const user = await userServices.findByEmail(email);
+  if (!user) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ message: `User not found with email ${email}` });
   }
   return res.status(httpStatus.OK).json({ data: user });
 };
@@ -77,12 +72,9 @@ const deactivateUser = async (req, res) => {
   if (deactivatedUser.isError) {
     switch (deactivatedUser.name) {
       case "NotFoundError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: `User not found with email ${email}` });
       case "DeactivationError":
         return res
-          .status(httpStatus.ACCEPTED)
+          .status(httpStatus.BAD_REQUEST)
           .json({ message: deactivatedUser.message });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
@@ -97,12 +89,9 @@ const activateUser = async (req, res) => {
   if (activatedUser.isError) {
     switch (activatedUser.name) {
       case "NotFoundError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: `User not found with email ${email}` });
       case "ActivationError":
         return res
-          .status(httpStatus.ACCEPTED)
+          .status(httpStatus.BAD_REQUEST)
           .json({ message: activatedUser.message });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
