@@ -28,9 +28,14 @@ const withdraw = async (user, amount) => {
   return newError("WithdrawError", "Insufficient amount");
 };
 
+const deposit = async (user, amount) => {
+  return changeBalance(user.email, user.balance + amount);
+};
+
 export default {
   findUserByEmail,
   getTransactionsByEmail,
   changeBalance,
   withdraw,
+  deposit,
 };

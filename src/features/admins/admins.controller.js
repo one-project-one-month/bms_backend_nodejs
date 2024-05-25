@@ -137,14 +137,26 @@ const listTransactionsByUserEmail = async (req, res) => {
   return res.status(httpStatus.OK).json({ data: transactions });
 };
 
-const withdraw = async (req, res) => {
-  const { adminId, data } = matchedData(req);
-  const user = await exceptionHandler(adminService.withdraw)(
-    data.userEmail,
-    data.amount,
-    adminId
-  );
-  console.info("user in withdraw", user);
+const withdrawOrDeposit = async (req, res) => {
+  const { process, adminId, data } = matchedData(req);
+  let user;
+  switch (process) {
+    case "withdraw":
+      user = await exceptionHandler(adminService.withdraw)(
+        data.userEmail,
+        data.amount,
+        adminId
+      );
+      break;
+    case "deposit":
+      user = await exceptionHandler(adminService.deposit)(
+        data.userEmail,
+        data.amount,
+        adminId
+      );
+      break;
+  }
+
   if (user.isError) {
     switch (user.name) {
       case "PrismaClientValidationError":
@@ -178,7 +190,8 @@ const transactions = async (req, res) => {
     case "transfer":
       return transfer(req, res);
     case "withdraw":
-      return withdraw(req, res);
+    case "deposit":
+      return withdrawOrDeposit(req, res);
     case "list":
       return listTransactionsByUserEmail(req, res);
     default:

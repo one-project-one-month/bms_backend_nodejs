@@ -81,6 +81,17 @@ const withdraw = async (email, amount, adminId) => {
   });
 };
 
+const deposit = async (email, amount, adminId) => {
+  const user = await userProtocol.findUserByEmail(email);
+  await userProtocol.deposit(user, amount);
+  return transactionProtocol.makeWithdrawOrDepositTransaction({
+    userId: user.id,
+    amount,
+    type: "deposit",
+    adminId,
+  });
+};
+
 export default {
   findAll,
   findByPersonalCode,
@@ -88,4 +99,5 @@ export default {
   deactivate,
   transfer,
   withdraw,
+  deposit,
 };

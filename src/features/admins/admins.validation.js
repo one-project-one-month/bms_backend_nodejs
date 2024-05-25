@@ -142,6 +142,7 @@ const transactionValidation = async (req, res, next) => {
       await validationForTransfer().run(req);
       break;
     case "withdraw":
+    case "deposit":
       await validationForWithdrawOrDeposit().run(req);
       break;
     case "list":
