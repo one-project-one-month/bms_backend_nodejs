@@ -2,6 +2,7 @@ import db from "../../database/index.js";
 import { generatePersonalCode } from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
 import transactionProtocol from "../transactions/transactions.protocol.js";
+import { newError } from "../../errors/errors.js";
 
 const select = {
   id: true,
@@ -92,6 +93,13 @@ const deposit = async (email, amount, adminId) => {
   });
 };
 
+const userCreation = async (data) => {
+  const user = await userProtocol.findUserByEmail(data.email);
+  if (user) throw newError("UserCreatedError", "User is already created.");
+  const newUser = await userProtocol.create(data);
+  return newUser;
+};
+
 export default {
   findAll,
   findByPersonalCode,
@@ -100,4 +108,5 @@ export default {
   transfer,
   withdraw,
   deposit,
+  userCreation,
 };

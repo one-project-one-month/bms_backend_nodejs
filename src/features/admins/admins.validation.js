@@ -152,4 +152,37 @@ const transactionValidation = async (req, res, next) => {
   next();
 };
 
-export { adminActionValidation, transactionValidation };
+const validationForUserRegistration = () => {
+  return checkSchema({
+    name: {
+      notEmpty: true,
+      errorMessage: "User name is required.",
+    },
+    email: {
+      notEmpty: {
+        errorMessage: "User email is required.",
+      },
+      isEmail: {
+        errorMessage: "Invalid email",
+      },
+    },
+    stateCode: {
+      notEmpty: true,
+      errorMessage: "StateCode must not empty.",
+    },
+    townshipCode: {
+      notEmpty: true,
+      errorMessage: "TownshipCode must not empty.",
+    },
+    adminId: {
+      notEmpty: true,
+      errorMessage: "Admin id is required.",
+    },
+  });
+};
+
+export {
+  adminActionValidation,
+  transactionValidation,
+  validationForUserRegistration,
+};

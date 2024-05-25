@@ -2,12 +2,8 @@ import { newError } from "../../errors/errors.js";
 import services from "./users.service.js";
 
 const findUserByEmail = async (email) => {
-  try {
-    const user = await services.findByEmail(email);
-    return user;
-  } catch (error) {
-    return newError(error.name, error.message);
-  }
+  const user = await services.findByEmail(email);
+  return user;
 };
 
 const changeBalance = async (email, balance) =>
@@ -32,10 +28,15 @@ const deposit = async (user, amount) => {
   return changeBalance(user.email, user.balance + amount);
 };
 
+const create = async (data) => {
+  return services.create(data);
+};
+
 export default {
   findUserByEmail,
   getTransactionsByEmail,
   changeBalance,
   withdraw,
   deposit,
+  create,
 };

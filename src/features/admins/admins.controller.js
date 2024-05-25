@@ -201,9 +201,27 @@ const transactions = async (req, res) => {
   }
 };
 
+const userRegistration = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty())
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+  const data = matchedData(req);
+  const user = await exceptionHandler(adminService.userCreation)(data);
+  if (user.isError) {
+    switch (user.name) {
+      case "UserCreatedError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: user.message });
+    }
+  }
+  return res.status(httpStatus.CREATED).json({ data: user });
+};
+
 export default {
   findAllAdmin,
   createAdmin,
   adminActions,
   transactions,
+  userRegistration,
 };

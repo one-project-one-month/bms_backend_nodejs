@@ -6,7 +6,7 @@ const findAll = async () => {
 };
 
 const findByEmail = async (email) => {
-  return db.user.findUniqueOrThrow({
+  return db.user.findUnique({
     where: { email },
   });
 };
