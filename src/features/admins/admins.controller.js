@@ -126,7 +126,7 @@ const listTransactionsByUserEmail = async (req, res) => {
   if (transactions.isError) {
     console.log("error in transaction ", transactions);
     switch (transactions.name) {
-      case "PrismaClientValidationError":
+      case "NotFoundError":
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: `User not found with email ${data.userEmail}` });
