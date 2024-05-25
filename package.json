@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon src",
     "start": "node src",
-    "postinstall": "prisma migrate deploy"
+    "postinstall": "prisma migrate dev"
   },
   "keywords": [],
   "author": "",
