@@ -30,7 +30,7 @@ const createUser = async (req, res) => {
         case "PrismaClientKnownRequestError":
           return res
             .status(httpStatus.BAD_REQUEST)
-            .json({ message: "Admin id is wrong" });
+            .json({ message: "Admin id is wrong or user is already created." });
         default:
           return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
       }
