@@ -70,8 +70,15 @@ const transfer = async ({
   });
 };
 
-const withdraw = async (email, amount) => {
-  return userProtocol.withdraw(email, amount);
+const withdraw = async (email, amount, adminId) => {
+  const user = await userProtocol.findUserByEmail(email);
+  await userProtocol.withdraw(user, amount);
+  return transactionProtocol.makeWithdrawOrDepositTransaction({
+    userId: user.id,
+    amount,
+    type: "withdraw",
+    adminId,
+  });
 };
 
 export default {

@@ -21,11 +21,9 @@ const getTransactionsByEmail = async (email) => {
   };
 };
 
-const withdraw = async (email, amount) => {
-  const user = await services.findByEmail(email);
-  console.info("withdraw ", user.balance, amount);
+const withdraw = async (user, amount) => {
   if (user.balance >= amount)
-    return changeBalance(email, user.balance - amount);
+    return changeBalance(user.email, user.balance - amount);
   return newError("WithdrawError", "Insufficient amount");
 };
 

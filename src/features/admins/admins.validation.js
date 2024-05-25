@@ -32,7 +32,7 @@ const adminActionValidation = async (req, res, next) => {
 
 const validationForTransfer = () => {
   return checkSchema({
-    id: {
+    adminId: {
       notEmpty: true,
       errorMessage: "Admin id is required.",
     },
@@ -77,7 +77,7 @@ const validationForTransfer = () => {
 
 const validationForListOfTransaction = () => {
   return checkSchema({
-    id: {
+    adminId: {
       notEmpty: true,
       errorMessage: "Admin id is required.",
     },
@@ -100,7 +100,7 @@ const validationForListOfTransaction = () => {
 
 const validationForWithdrawOrDeposit = () => {
   return checkSchema({
-    id: {
+    adminId: {
       notEmpty: true,
       errorMessage: "Admin id is required.",
     },

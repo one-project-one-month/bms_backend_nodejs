@@ -74,7 +74,7 @@ const adminActions = async (req, res) => {
 };
 
 const transfer = async (req, res) => {
-  const { id, data } = matchedData(req);
+  const { adminId, data } = matchedData(req);
   const { senderEmail, receiverEmail, transferAmount, note } = data;
 
   if (!senderEmail) {
@@ -117,7 +117,7 @@ const transfer = async (req, res) => {
   const transaction = await exceptionHandler(adminService.transfer)({
     sender,
     receiver,
-    adminId: id,
+    adminId,
     transferAmount,
     note,
   });
@@ -131,27 +131,42 @@ const transfer = async (req, res) => {
 
 const listTransactionsByUserEmail = async (req, res) => {
   const { data } = matchedData(req);
-  console.info("user email ", data.userEmail);
   const transactions = await exceptionHandler(
     userProtocol.getTransactionsByEmail
   )(data.userEmail);
 
   if (transactions.isError) {
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    console.log("error in transaction ", transactions);
+    switch (transactions.name) {
+      case "PrismaClientValidationError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `User not found with email ${data.userEmail}` });
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
   }
-
-  return res.status(httpStatus.OK).json({ transactions });
+  return res.status(httpStatus.OK).json({ data: transactions });
 };
 
 const withdraw = async (req, res) => {
-  const { data } = matchedData(req);
+  const { adminId, data } = matchedData(req);
   const user = await exceptionHandler(adminService.withdraw)(
     data.userEmail,
-    data.amount
+    data.amount,
+    adminId
   );
   console.info("user in withdraw", user);
   if (user.isError) {
     switch (user.name) {
+      case "PrismaClientValidationError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `User not found with email ${data.userEmail}` });
+      case "PrismaClientKnownRequestError":
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `Admin not found with id ${adminId}` });
       case "WithdrawError":
         return res
           .status(httpStatus.BAD_REQUEST)
@@ -161,6 +176,7 @@ const withdraw = async (req, res) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
+
   return res.status(httpStatus.OK).end();
 };
 

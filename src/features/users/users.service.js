@@ -84,7 +84,7 @@ const getTransactionsByEmail = async (email) => {
       SendingTransferHistory: {
         select: {
           id: true,
-          transferAmount: true,
+          amount: true,
           time: true,
           receiver: {
             select: {
@@ -96,7 +96,7 @@ const getTransactionsByEmail = async (email) => {
       ReceivingTransferHistory: {
         select: {
           id: true,
-          transferAmount: true,
+          amount: true,
           time: true,
           sender: {
             select: {

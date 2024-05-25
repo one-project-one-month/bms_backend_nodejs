@@ -23,7 +23,7 @@ async function makeWithdrawOrDepositTransaction({
   type,
   adminId,
 }) {
-  const transaction = await services.createTransferTransaction({
+  const transaction = await services.createWithdrawOrDepositTransaction({
     userId,
     amount,
     type,
