@@ -9,8 +9,9 @@ datasource db {
 
 model User {
   id                       String              @id @default(uuid())
-  email                    String              @unique
   name                     String
+  email                    String              @unique
+  username                 String              @unique
   balance                  Float               @default(0)
   isDeleted                Boolean             @default(false)
   isDeactivated            Boolean             @default(false)
