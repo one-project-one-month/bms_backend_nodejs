@@ -1,16 +1,19 @@
-import { newError } from "../../errors/errors.js";
+import { INSUFFICIENT_AMOUNT_ERR, newError } from "../../errors/errors.js";
 import services from "./users.service.js";
 
-const findUserByEmail = async (email) => {
-  const user = await services.findByEmail(email);
+const findUserByUsername = async (username) => {
+  const user = await services.findByUsername(username);
   return user;
 };
 
-const changeBalance = async (email, balance) =>
-  services.update(email, { balance });
+const changeBalance = async (username, balance) => {
+  const user = await services.update(username, { balance });
+  return user;
+};
 
-const getTransactionsByEmail = async (email) => {
-  const user = await services.getTransactionsByEmail(email);
+const getTransactions = async (username) => {
+  const user = await services.getTransactions(username);
+  if (user.isError()) return user;
   return {
     sending: user.SendingTransferHistory,
     receiving: user.ReceivingTransferHistory,
@@ -21,7 +24,7 @@ const getTransactionsByEmail = async (email) => {
 const withdraw = async (user, amount) => {
   if (user.balance >= amount)
     return changeBalance(user.email, user.balance - amount);
-  return newError("WithdrawError", "Insufficient amount");
+  return newError(INSUFFICIENT_AMOUNT_ERR, "Insufficient amount");
 };
 
 const deposit = async (user, amount) => {
@@ -33,8 +36,8 @@ const create = async (data) => {
 };
 
 export default {
-  findUserByEmail,
-  getTransactionsByEmail,
+  findUserByUsername,
+  getTransactions,
   changeBalance,
   withdraw,
   deposit,

@@ -11,6 +11,13 @@ const router = express.Router();
 router.get("/", usersController.findAllUsers);
 router.post("/", createUserValidation(), usersController.createUser);
 router.put("/", updateUserValidation(), usersController.updateUser);
+
+/**
+ * deactivate
+ * activate
+ * delete
+ * search
+ */
 router.post("/actions", userActionsValidation(), usersController.userActions);
 
 export default router;

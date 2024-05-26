@@ -1,39 +1,21 @@
 import { matchedData, validationResult } from "express-validator";
 import httpStatus from "http-status-codes";
 import userServices from "./users.service.js";
-import { exceptionHandler } from "../../handlers/exception.js";
+import { INTERNAL_ERR } from "../../errors/errors.js";
 
 const findAllUsers = async (req, res) => {
-  let users = await exceptionHandler(userServices.findAll)();
-  if (users.isError) return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  let users = await userServices.findAll();
   return res.status(httpStatus.OK).json({ data: users });
-};
-
-const findUserByEmail = async (req, res) => {
-  const { email } = matchedData(req);
-  const user = await userServices.findByEmail(email);
-  if (!user) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: `User not found with email ${email}` });
-  }
-  return res.status(httpStatus.OK).json({ data: user });
 };
 
 const createUser = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
     const data = matchedData(req);
-    const newUser = await exceptionHandler(userServices.create)(data);
-    if (newUser.isError) {
-      switch (newUser.name) {
-        case "PrismaClientKnownRequestError":
-          return res
-            .status(httpStatus.BAD_REQUEST)
-            .json({ message: "Admin id is wrong or user is already created." });
-        default:
-          return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-      }
+    const newUser = await userServices.create(data);
+    if (newUser.isError()) {
+      if (newUser.message === INTERNAL_ERR)
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
     return res.status(httpStatus.CREATED).json({ data: newUser });
   }
@@ -43,61 +25,18 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
-    const { email, data } = matchedData(req);
-    const updatedUser = await exceptionHandler(userServices.update)(
-      email,
-      data
-    );
-    if (updatedUser.isError) {
-      switch (updatedUser.name) {
-        case "PrismaClientKnownRequestError":
-          return res
-            .status(httpStatus.BAD_REQUEST)
-            .json({ message: `User not found with email ${email}` });
-
-        default:
-          return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-      }
+    const { username, data } = matchedData(req);
+    const updatedUser = await userServices.update(username, data);
+    if (updatedUser.isError()) {
+      if (updatedUser.message === INTERNAL_ERR)
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ message: updateUser.message });
     }
     return res.status(httpStatus.OK).json({ data: updatedUser });
   }
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
-};
-
-const deactivateUser = async (req, res) => {
-  const { email } = matchedData(req);
-  const deactivatedUser = await exceptionHandler(userServices.deactivate)(
-    email
-  );
-  if (deactivatedUser.isError) {
-    switch (deactivatedUser.name) {
-      case "NotFoundError":
-      case "DeactivationError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: deactivatedUser.message });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-    }
-  }
-  return res.status(httpStatus.OK).end();
-};
-
-const activateUser = async (req, res) => {
-  const { email } = matchedData(req);
-  const activatedUser = await exceptionHandler(userServices.activate)(email);
-  if (activatedUser.isError) {
-    switch (activatedUser.name) {
-      case "NotFoundError":
-      case "ActivationError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: activatedUser.message });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-    }
-  }
-  return res.status(httpStatus.OK).end();
 };
 
 const userActions = async (req, res) => {
@@ -106,13 +45,13 @@ const userActions = async (req, res) => {
     const { process } = matchedData(req);
     switch (process) {
       case "deactivate":
-        return deactivateUser(req, res);
+        return deactivateOrNot(req, res);
       case "activate":
-        return activateUser(req, res);
+        return deactivateOrNot(req, res);
       case "delete":
         return deleteUser(req, res);
       case "search":
-        return findUserByEmail(req, res);
+        return findUser(req, res);
       default:
         return res
           .status(httpStatus.METHOD_NOT_ALLOWED)
@@ -122,20 +61,49 @@ const userActions = async (req, res) => {
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 };
 
-const deleteUser = async (req, res) => {
-  const { email } = matchedData(req);
-  const deletedUser = await exceptionHandler(userServices.remove)(email);
-  if (deletedUser.isError) {
-    switch (deletedUser.name) {
-      case "PrismaClientKnownRequestError":
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: "User not found" });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-    }
+const deactivateOrNot = async (req, res) => {
+  const { username, process } = matchedData(req);
+  let user;
+  switch (process) {
+    case "deactivate":
+      user = await userServices.deactivate(username);
+      break;
+    case "activate":
+      user = await userServices.activate(username);
+      break;
   }
-  return res.status(httpStatus.OK).end();
+  if (user.isError()) {
+    if (user.name === INTERNAL_ERR)
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    return res.status(httpStatus.BAD_REQUEST).json({ message: user.message });
+  }
+  return res.status(httpStatus.OK).json({
+    name: user.name,
+    username: user.username,
+    isDeactivated: user.isDeactivated,
+  });
+};
+
+const findUser = async (req, res) => {
+  const { username } = matchedData(req);
+  const user = await userServices.findByUsername(username);
+  if (user.isError()) {
+    if (user.name === INTERNAL_ERR)
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    return res.status(httpStatus.BAD_REQUEST).json({ message: user.message });
+  }
+  return res.status(httpStatus.OK).json({ data: user });
+};
+
+const deleteUser = async (req, res) => {
+  const { username } = matchedData(req);
+  const user = await userServices.remove(username);
+  if (user.isError()) {
+    if (user.name === INTERNAL_ERR)
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    return res.status(httpStatus.BAD_REQUEST).json({ message: user.message });
+  }
+  return res.status(httpStatus.OK).json({ data: user });
 };
 
 export default {

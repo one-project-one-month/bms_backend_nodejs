@@ -2,12 +2,9 @@ import { checkSchema } from "express-validator";
 
 const updateUserValidation = () => {
   return checkSchema({
-    email: {
+    username: {
       notEmpty: {
         errorMessage: "User email is required.",
-      },
-      isEmail: {
-        errorMessage: "Invalid email.",
       },
     },
     data: {
@@ -28,8 +25,15 @@ const updateUserValidation = () => {
         "Password must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character.",
     },
     "data.balance": {
-      optional: true,
+      notEmpty: true,
       isDecimal: true,
+      custom: {
+        options: (value) => {
+          return value > 0;
+        },
+        errorMessage: "Balance must be greater than 0.",
+      },
+      errorMessage: "Invalid amount",
     },
     "data.email": {
       optional: true,
@@ -78,12 +82,9 @@ const createUserValidation = () => {
 
 const userActionsValidation = () => {
   return checkSchema({
-    email: {
+    username: {
       notEmpty: {
-        errorMessage: "User email is required.",
-      },
-      isEmail: {
-        errorMessage: "Invalid email.",
+        errorMessage: "Username is required.",
       },
     },
     process: {
