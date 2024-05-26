@@ -1,10 +1,12 @@
 import db from "../../database/index.js";
-import newError, {
-  INTERNAL_ERR,
-  USER_ACTIVATION_ERR,
-  USER_DEACTIVATION_ERR,
+import {
+  ADMIN_NOT_FOUND_ERR,
+  USER_ALREADY_ACTIVATED,
+  USER_ALREADY_DEACTIVATED,
+  USER_ALREADY_DELETED,
   USER_NOT_FOUND_ERR,
 } from "../../errors/errors.js";
+import usersHandler from "./users.handler.js";
 
 const findAll = async () => {
   return db.user.findMany({});
@@ -15,23 +17,57 @@ const findByUsername = async (username) => {
     const user = await db.user.findUniqueOrThrow({
       where: { username },
     });
-    if (!user) {
-      return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
-    }
-    return user;
+    return {
+      data: user,
+      error: null,
+    };
   } catch (error) {
-    return newError(INTERNAL_ERR, error.message);
+    console.error(error);
+    return {
+      data: null,
+      error: USER_NOT_FOUND_ERR,
+    };
+  }
+};
+
+const findByEmail = async (email) => {
+  try {
+    const user = await db.user.findUniqueOrThrow({
+      where: { email },
+    });
+    return {
+      data: user,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      error: USER_NOT_FOUND_ERR,
+    };
   }
 };
 
 const create = async (data) => {
-  const user = await db.user.create({
-    data,
-  });
-  if (!user) {
-    return newError(INTERNAL_ERR, "");
+  const username = usersHandler.generateUsername(data.name);
+  try {
+    const user = await db.user.create({
+      data: {
+        ...data,
+        username,
+      },
+    });
+    return {
+      data: user,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error.message);
+    return {
+      data: null,
+      error: ADMIN_NOT_FOUND_ERR,
+    };
   }
-  return user;
 };
 
 const update = async (username, data) => {
@@ -40,117 +76,168 @@ const update = async (username, data) => {
       where: { username },
       data,
     });
-    if (!user) {
-      return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
-    }
-    return user;
+    return {
+      data: user,
+      error: null,
+    };
   } catch (error) {
-    return newError(INTERNAL_ERR, error.message);
+    console.error(error);
+    return {
+      data: null,
+      error: USER_NOT_FOUND_ERR,
+    };
   }
 };
 
 const deactivate = async (username) => {
-  const user = await findByUsername(username);
-  if (user) {
-    if (user.isDeactivated) {
-      return newError(USER_DEACTIVATION_ERR, "User is already deactivated.");
+  const { data, error } = await findByUsername(username);
+  if (data) {
+    if (data.isDeactivated) {
+      return {
+        data,
+        error: USER_ALREADY_DEACTIVATED,
+      };
     }
-    return db.user.update({
+    const user = await db.user.update({
       where: { username },
       data: {
         isDeactivated: true,
       },
     });
+    return {
+      data: user,
+      error: null,
+    };
   }
-  return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
+
+  return {
+    data: null,
+    error: error,
+  };
 };
 
 const activate = async (username) => {
-  const user = await findByUsername(username);
-  if (user) {
-    if (user.isDeactivated) {
-      return newError(USER_ACTIVATION_ERR, "User is already activated.");
+  const { data, error } = await findByUsername(username);
+
+  if (data) {
+    if (!data.isDeactivated) {
+      return {
+        data,
+        error: USER_ALREADY_ACTIVATED,
+      };
     }
-    return db.user.update({
+
+    const user = await db.user.update({
       where: { username },
       data: {
         isDeactivated: false,
         isDeleted: false,
       },
     });
+    return { data: user, error: null };
   }
-  return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
+
+  return { data: null, error };
 };
 
 const remove = async (username) => {
-  try {
+  const { data, error } = await findByUsername(username);
+
+  if (data) {
+    if (data.isDeactivated && data.isDeleted)
+      return {
+        data,
+        error: USER_ALREADY_DELETED,
+      };
+
     const user = await db.user.update({
       where: { username },
       data: {
-        isDeleted: true,
         isDeactivated: true,
+        isDeleted: true,
       },
     });
-    if (!user) {
-      return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
-    }
-    return user;
-  } catch (error) {
-    return newError(INTERNAL_ERR, error.message);
+
+    return { data: user, error: null };
   }
+  return {
+    data: null,
+    error,
+  };
 };
 
 const getTransactions = async (username) => {
-  const transactions = await db.user.findUnique({
-    where: { username },
-    include: {
-      WithdrawOrDeposit: {
-        select: {
-          id: true,
-          amount: true,
-          time: true,
-          type: true,
-          user: {
-            select: {
-              name: true,
+  try {
+    const transactions = await db.user.findUniqueOrThrow({
+      where: { username },
+      include: {
+        WithdrawOrDeposit: {
+          select: {
+            id: true,
+            amount: true,
+            time: true,
+            type: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        SendingTransferHistory: {
+          select: {
+            id: true,
+            amount: true,
+            time: true,
+            sender: {
+              select: {
+                name: true,
+              },
+            },
+            receiver: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        ReceivingTransferHistory: {
+          select: {
+            id: true,
+            amount: true,
+            time: true,
+            sender: {
+              select: {
+                name: true,
+              },
+            },
+            receiver: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-      SendingTransferHistory: {
-        select: {
-          id: true,
-          amount: true,
-          time: true,
-          receiver: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      ReceivingTransferHistory: {
-        select: {
-          id: true,
-          amount: true,
-          time: true,
-          sender: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  if (!transactions)
-    return newError(USER_NOT_FOUND_ERR, `Username ${username} is not found.`);
-  return transactions;
+    });
+
+    return {
+      data: transactions,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      error: USER_NOT_FOUND_ERR,
+    };
+  }
 };
 
 export default {
   findAll,
   findByUsername,
+  findByEmail,
   create,
   update,
   deactivate,

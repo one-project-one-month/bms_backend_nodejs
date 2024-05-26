@@ -1,57 +1,68 @@
 import httpStatus from "http-status-codes";
 import { matchedData, validationResult } from "express-validator";
 import adminService from "./admins.service.js";
-import { exceptionHandler } from "../../handlers/exception.js";
+import {
+  ADMIN_NOT_FOUND_ERR,
+  DEPOSIT_ERR,
+  RECEIVER_NOT_FOUND_ERR,
+  SENDER_NOT_FOUND_ERR,
+  USER_ALREADY_CREATED,
+  USER_NOT_FOUND_ERR,
+  WITHDRAW_ERR,
+} from "../../errors/errors.js";
 
 const findAllAdmin = async (req, res) => {
-  let admins = await exceptionHandler(adminService.findAll)();
-  if (admins.isError) {
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-  }
+  let admins = await adminService.findAll();
   return res.status(httpStatus.OK).json({ data: admins });
 };
 
 const findAdminByCode = async (req, res) => {
   const { data } = matchedData(req);
-  const admin = await exceptionHandler(adminService.findByPersonalCode)(
-    data.adminCode
-  );
-  if (admin.isError) {
-    switch (admin.message) {
-      case "No Admin found":
+  const admin = await adminService.findByAdminCode(data.adminCode);
+  if (admin.error) {
+    switch (admin.error) {
+      case ADMIN_NOT_FOUND_ERR:
         return res.status(httpStatus.BAD_REQUEST).json({
-          message: `not found admin with personal code: ${data.adminCode}`,
+          message: `Not found admin with admin code: ${data.adminCode}`,
         });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(httpStatus.OK).json({ data: admin });
+  return res.status(httpStatus.OK).json({ data: admin.data });
 };
 
 const createAdmin = async (req, res) => {
-  const { name, password, role } = req.body;
-  const admin = await adminService.create(name, password, role);
-  if (!admin) return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
-  return res.status(201).json({ data: admin });
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+  }
+  const data = matchedData(req);
+  const admin = await adminService.create(data);
+  if (admin.error) return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  return res.status(201).json({ data: admin.data });
 };
 
 const deactivateAdmin = async (req, res) => {
   const { data } = matchedData(req);
-  const admin = await exceptionHandler(adminService.deactivate)(data.adminCode);
-  if (admin.isError) {
-    console.error("admin error ", admin.name);
-    switch (admin.name) {
-      case "PrismaClientKnownRequestError":
-      case "PrismaClientValidationError":
+  let admin = await adminService.findByAdminCode(data.adminCode);
+  console.info("admin ", admin);
+  if (admin.error) {
+    switch (admin.error) {
+      case ADMIN_NOT_FOUND_ERR:
         return res.status(httpStatus.BAD_REQUEST).json({
-          message: `Admin not found with personal code ${data.adminCode}`,
+          message: `Not found admin with admin code: ${data.adminCode}`,
         });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
   }
-  return res.status(200).end();
+  if (admin.data.isDeactivated) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      message: "Admin is already deactivated",
+    });
+  }
+  admin = await adminService.deactivate(data.adminCode);
+  if (admin.error) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+  }
+  return res.status(httpStatus.OK).json({ data: admin.data });
 };
 
 const adminActions = async (req, res) => {
@@ -60,13 +71,13 @@ const adminActions = async (req, res) => {
     const { process } = matchedData(req);
     switch (process) {
       case "deactivate":
-        return deactivateAdmin(req, res);
+        return await deactivateAdmin(req, res);
       case "search":
-        return findAdminByCode(req, res);
+        return await findAdminByCode(req, res);
       default:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: "Invalid action name" });
+          .json({ message: "Invalid process name" });
     }
   }
   return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
@@ -75,85 +86,82 @@ const adminActions = async (req, res) => {
 const transfer = async (req, res) => {
   const { adminId, data } = matchedData(req);
 
-  const transaction = await exceptionHandler(adminService.transfer)({
-    ...data,
+  const transaction = await adminService.transfer({
+    senderUsername: data.sender,
+    receiverUsername: data.receiver,
+    transferAmount: data.transferAmount,
+    note: data.note,
     adminId,
   });
 
-  if (transaction.isError) {
-    switch (transaction.name) {
-      case "UserNotExistError":
-      case "InsufficientBalanceError":
+  if (transaction.error) {
+    switch (transaction.error) {
+      case ADMIN_NOT_FOUND_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: transaction.message });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+          .json({ message: "Admin not found" });
+      case SENDER_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Sender not found" });
+      case RECEIVER_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Receiver not found" });
     }
   }
-  return res.status(httpStatus.OK).end();
+
+  return res.status(httpStatus.OK).json({ data: transaction.data });
 };
 
 const listTransactionsByUserEmail = async (req, res) => {
   const { data } = matchedData(req);
-  const transactions = await exceptionHandler(
-    adminService.getTransactionsByEmail
-  )(data.userEmail);
+  const transactions = await adminService.getTransactions(data.username);
 
-  if (transactions.isError) {
-    switch (transactions.name) {
-      case "NotFoundError":
+  if (transactions.error) {
+    switch (transactions.error) {
+      case ADMIN_NOT_FOUND_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: `User not found with email ${data.userEmail}` });
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+          .json({ message: "Admin not found." });
     }
   }
-  return res.status(httpStatus.OK).json({ data: transactions });
+
+  return res.status(httpStatus.OK).json({ data: transactions.data });
 };
 
 const withdrawOrDeposit = async (req, res) => {
-  const { process, adminId, data } = matchedData(req);
   let user;
+  const { process, adminId, data } = matchedData(req);
+
   switch (process) {
     case "withdraw":
-      user = await exceptionHandler(adminService.withdraw)(
-        data.userEmail,
-        data.amount,
-        adminId
-      );
+      user = await adminService.withdraw(data.username, data.amount, adminId);
       break;
     case "deposit":
-      user = await exceptionHandler(adminService.deposit)(
-        data.userEmail,
-        data.amount,
-        adminId
-      );
+      user = await adminService.deposit(data.username, data.amount, adminId);
       break;
   }
 
-  if (user.isError) {
-    switch (user.name) {
-      case "PrismaClientValidationError":
+  if (user.error) {
+    switch (user.error) {
+      case ADMIN_NOT_FOUND_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: `User not found with email ${data.userEmail}` });
-      case "PrismaClientKnownRequestError":
+          .json({ message: "Admin not found" });
+      case USER_NOT_FOUND_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: `Admin not found with id ${adminId}` });
-      case "WithdrawError":
+          .json({ message: "User not found" });
+      case WITHDRAW_ERR:
+      case DEPOSIT_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: user.message });
-
-      default:
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+          .json({ message: "Something go wrong!" });
     }
   }
 
-  return res.status(httpStatus.OK).end();
+  return res.status(httpStatus.OK).json({ data: user.data });
 };
 
 const transactions = async (req, res) => {
@@ -179,19 +187,28 @@ const transactions = async (req, res) => {
 
 const userRegistration = async (req, res) => {
   const result = validationResult(req);
+
   if (!result.isEmpty())
     return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+
   const data = matchedData(req);
-  const user = await exceptionHandler(adminService.userCreation)(data);
-  if (user.isError) {
-    switch (user.name) {
-      case "UserCreatedError":
+
+  const user = await adminService.userRegistration(data);
+  if (user.error)
+    switch (user.error) {
+      case USER_ALREADY_CREATED:
         return res
           .status(httpStatus.BAD_REQUEST)
-          .json({ message: user.message });
+          .json({ message: "User is already created." });
+      case ADMIN_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Admin not found." });
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
-  }
-  return res.status(httpStatus.CREATED).json({ data: user });
+
+  return res.status(httpStatus.CREATED).json({ data: user.data });
 };
 
 export default {

@@ -2,14 +2,25 @@ import db from "../../database/index.js";
 import { generatePersonalCode } from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
 import transactionProtocol from "../transactions/transactions.protocol.js";
-import { newError } from "../../errors/errors.js";
+import {
+  ADMIN_NOT_FOUND_ERR,
+  DEPOSIT_ERR,
+  INSUFFICIENT_AMOUNT_ERR,
+  INTERNAL_ERR,
+  RECEIVER_NOT_FOUND_ERR,
+  SAME_USER_ERR,
+  SENDER_NOT_FOUND_ERR,
+  USER_ALREADY_CREATED,
+  USER_NOT_FOUND_ERR,
+  WITHDRAW_ERR,
+} from "../../errors/errors.js";
 
 const select = {
   id: true,
   name: true,
-  personalCode: true,
+  adminCode: true,
   role: true,
-  isDeactivaed: true,
+  isDeactivated: true,
 };
 
 const findAll = async () => {
@@ -18,125 +29,215 @@ const findAll = async () => {
   });
 };
 
-const findByPersonalCode = async (personalCode) => {
-  return db.admin.findFirstOrThrow({
-    where: {
-      personalCode,
-    },
-    select,
-  });
+const findByAdminCode = async (adminCode) => {
+  try {
+    const admin = await db.admin.findFirstOrThrow({
+      where: {
+        adminCode,
+      },
+      select,
+    });
+    return {
+      data: admin,
+      error: null,
+    };
+  } catch (error) {
+    console.info(error);
+    return {
+      data: null,
+      error: ADMIN_NOT_FOUND_ERR,
+    };
+  }
 };
 
-const create = async (name, password, role) => {
-  const personalCode = generatePersonalCode(name + new Date().toISOString());
-  return db.admin.create({
-    data: { name, personalCode, password, role },
-  });
+const findByAdminId = async (id) => {
+  try {
+    const admin = await db.admin.findFirstOrThrow({
+      where: {
+        id,
+      },
+      select,
+    });
+    return {
+      data: admin,
+      error: null,
+    };
+  } catch (error) {
+    console.info(error);
+    return {
+      data: null,
+      error: ADMIN_NOT_FOUND_ERR,
+    };
+  }
 };
 
-const deactivate = async (personalCode) => {
-  return db.admin.update({
+const create = async (data) => {
+  const adminCode = generatePersonalCode(data.name);
+  const admin = await db.admin.create({
+    data: { ...data, adminCode },
+  });
+  return {
+    data: admin,
+    error: null,
+  };
+};
+
+const deactivate = async (adminCode) => {
+  const admin = await db.admin.update({
     where: {
-      personalCode,
+      adminCode,
     },
     data: {
-      isDeactivaed: true,
+      isDeactivated: true,
     },
   });
+  return {
+    data: admin,
+    error: null,
+  };
 };
 
 const transfer = async ({
-  senderEmail,
-  receiverEmail,
+  senderUsername,
+  receiverUsername,
   transferAmount,
   note,
   adminId,
 }) => {
-  if (senderEmail === receiverEmail)
-    return newError(
-      "TransactionError",
-      "Sender and receiver must not be same."
+  if (senderUsername === receiverUsername)
+    return { data: null, error: SAME_USER_ERR };
+
+  const admin = await findByAdminId(adminId);
+  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+
+  const sender = await userProtocol.findUserByUsername(senderUsername);
+  if (!sender) return { data: null, error: SENDER_NOT_FOUND_ERR };
+
+  const receiver = await userProtocol.findUserByUsername(receiverUsername);
+  if (!receiver) return { data: null, error: RECEIVER_NOT_FOUND_ERR };
+
+  if (sender.balance < transferAmount)
+    return { data: null, error: INSUFFICIENT_AMOUNT_ERR };
+
+  try {
+    await userProtocol.changeBalance(
+      sender.username,
+      sender.balance - transferAmount
     );
 
-  const sender = await userProtocol.findUserByEmail(senderEmail);
-  if (!sender) {
-    return newError(
-      "UserNotExistError",
-      `Sender with email ${senderEmail} is not exist.`
+    await userProtocol.changeBalance(
+      receiver.username,
+      receiver.balance + transferAmount
     );
+
+    const transaction = await transactionProtocol.makeTransferTransaction({
+      senderId: sender.id,
+      receiverId: receiver.id,
+      amount: transferAmount,
+      note,
+      adminId,
+    });
+
+    if (!transaction) {
+      return {
+        data: null,
+        error: INTERNAL_ERR,
+      };
+    }
+
+    return {
+      data: transaction,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      error,
+    };
+  }
+};
+
+const withdraw = async (username, amount, adminId) => {
+  const admin = await findByAdminId(adminId);
+  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+
+  let user = await userProtocol.findUserByUsername(username);
+  if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
+
+  if (user.balance < amount)
+    return { data: null, error: INSUFFICIENT_AMOUNT_ERR };
+
+  user = await userProtocol.withdraw(user.username, user.balance, amount);
+  if (!user) return { data: null, error: WITHDRAW_ERR };
+
+  const transaction =
+    await transactionProtocol.makeWithdrawOrDepositTransaction({
+      userId: user.id,
+      amount,
+      type: "withdraw",
+      adminId,
+    });
+  return { data: transaction, error: null };
+};
+
+const deposit = async (username, amount, adminId) => {
+  const admin = await findByAdminId(adminId);
+  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+
+  let user = await userProtocol.findUserByUsername(username);
+  if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
+
+  user = await userProtocol.deposit(user.username, user.balance, amount);
+  if (!user) return { data: null, error: DEPOSIT_ERR };
+
+  const transaction =
+    await transactionProtocol.makeWithdrawOrDepositTransaction({
+      userId: user.id,
+      amount,
+      type: "deposit",
+      adminId,
+    });
+  return { data: transaction, error: null };
+};
+
+const findUser = async (username) => userProtocol.findUserByUsername(username);
+
+const userRegistration = async (userData) => {
+  const { data } = await userProtocol.findUserByEmail(userData.email);
+
+  if (data) {
+    return {
+      data,
+      error: USER_ALREADY_CREATED,
+    };
   }
 
-  const receiver = await userProtocol.findUserByEmail(receiverEmail);
-  if (!receiver) {
-    return newError(
-      "UserNotExistError",
-      `Receiver with email ${receiverEmail} is not exist.`
-    );
-  }
-
-  if (sender.balance < transferAmount) {
-    return newError("InsufficientBalanceError", "Insufficient balance.");
-  }
-  await userProtocol.changeBalance(
-    sender.email,
-    sender.balance - transferAmount
-  );
-
-  await userProtocol.changeBalance(
-    receiver.email,
-    receiver.balance + transferAmount
-  );
-
-  return await transactionProtocol.makeTransferTransaction({
-    senderId: sender.id,
-    receiverId: receiver.id,
-    amount: transferAmount,
-    note,
-    adminId,
-  });
+  return userProtocol.create(userData);
 };
 
-const withdraw = async (email, amount, adminId) => {
-  const user = await userProtocol.findUserByEmail(email);
-  await userProtocol.withdraw(user, amount);
-  return transactionProtocol.makeWithdrawOrDepositTransaction({
-    userId: user.id,
-    amount,
-    type: "withdraw",
-    adminId,
-  });
-};
-
-const deposit = async (email, amount, adminId) => {
-  const user = await userProtocol.findUserByEmail(email);
-  await userProtocol.deposit(user, amount);
-  return transactionProtocol.makeWithdrawOrDepositTransaction({
-    userId: user.id,
-    amount,
-    type: "deposit",
-    adminId,
-  });
-};
-
-const userCreation = async (data) => {
-  const user = await userProtocol.findUserByEmail(data.email);
-  if (user) throw newError("UserCreatedError", "User is already created.");
-  const newUser = await userProtocol.create(data);
-  return newUser;
-};
-
-const getTransactionsByEmail = async (email) => {
-  return userProtocol.getTransactionsByEmail(email);
+const getTransactions = async (username) => {
+  const transactions = await userProtocol.getTransactions(username);
+  if (!transactions)
+    return {
+      data: null,
+      error: INTERNAL_ERR,
+    };
+  return {
+    data: transactions,
+    error: null,
+  };
 };
 
 export default {
   findAll,
-  findByPersonalCode,
+  findByAdminCode,
   create,
   deactivate,
   transfer,
   withdraw,
   deposit,
-  userCreation,
-  getTransactionsByEmail,
+  userRegistration,
+  getTransactions,
+  findUser,
 };

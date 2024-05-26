@@ -1,6 +1,20 @@
 import { checkSchema, matchedData } from "express-validator";
 
-const validationForDeactivate = () => {
+const createAdminValidation = () => {
+  return checkSchema({
+    name: {
+      notEmpty: true,
+    },
+    password: {
+      notEmpty: true,
+    },
+    role: {
+      notEmpty: true,
+    },
+  });
+};
+
+const adminActionsValidation = () => {
   return checkSchema({
     managerId: {
       notEmpty: true,
@@ -17,19 +31,6 @@ const validationForDeactivate = () => {
   });
 };
 
-const adminActionValidation = async (req, res, next) => {
-  const { process } = matchedData(req);
-  switch (process) {
-    case "deactivate":
-      await validationForDeactivate().run(req);
-      break;
-    case "search":
-      await validationForDeactivate().run(req);
-      break;
-  }
-  next();
-};
-
 const validationForTransfer = () => {
   return checkSchema({
     adminId: {
@@ -44,20 +45,14 @@ const validationForTransfer = () => {
       notEmpty: true,
       errorMessage: "Data is required.",
     },
-    "data.senderEmail": {
+    "data.sender": {
       notEmpty: {
-        errorMessage: "Sender email must not be empty.",
-      },
-      isEmail: {
-        errorMessage: "Invalid email.",
+        errorMessage: "Sender is required.",
       },
     },
-    "data.receiverEmail": {
+    "data.receiver": {
       notEmpty: {
-        errorMessage: "Receiver email must not be empty.",
-      },
-      isEmail: {
-        errorMessage: "Invalid email",
+        errorMessage: "Receiver is required.",
       },
     },
     "data.transferAmount": {
@@ -92,11 +87,9 @@ const validationForListOfTransaction = () => {
       notEmpty: true,
       errorMessage: "Data is required.",
     },
-    "data.userEmail": {
+    "data.username": {
       notEmpty: true,
-      isEmail: {
-        errorMessage: "Invalid email",
-      },
+      errorMessage: "Username is required.",
     },
   });
 };
@@ -115,11 +108,9 @@ const validationForWithdrawOrDeposit = () => {
       notEmpty: true,
       errorMessage: "Data is required.",
     },
-    "data.userEmail": {
+    "data.username": {
       notEmpty: true,
-      isEmail: {
-        errorMessage: "Invalid email",
-      },
+      errorMessage: "Username is required.",
     },
     "data.amount": {
       notEmpty: true,
@@ -128,7 +119,7 @@ const validationForWithdrawOrDeposit = () => {
         options: (value) => {
           return value > 0;
         },
-        errorMessage: "Invalid amount",
+        errorMessage: "Amount must be greater than 0.",
       },
       errorMessage: "Invalid amount",
     },
@@ -182,7 +173,8 @@ const validationForUserRegistration = () => {
 };
 
 export {
-  adminActionValidation,
+  createAdminValidation,
+  adminActionsValidation,
   transactionValidation,
   validationForUserRegistration,
 };

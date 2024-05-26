@@ -4,7 +4,7 @@ const updateUserValidation = () => {
   return checkSchema({
     username: {
       notEmpty: {
-        errorMessage: "User email is required.",
+        errorMessage: "Username is required.",
       },
     },
     data: {

@@ -27,10 +27,10 @@ model User {
 model Admin {
   id                String              @id @default(uuid())
   name              String
-  personalCode      String              @unique
+  adminCode         String              @unique
   password          String
   role              String
-  isDeactivaed      Boolean             @default(false)
+  isDeactivated     Boolean             @default(false)
   Transfer          Transfer[]
   WithdrawOrDeposit WithdrawOrDeposit[]
   User              User[]

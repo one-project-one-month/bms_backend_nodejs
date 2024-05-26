@@ -1,7 +1,8 @@
 import express from "express";
 import adminController from "./admins.controller.js";
 import {
-  adminActionValidation,
+  adminActionsValidation,
+  createAdminValidation,
   transactionValidation,
   validationForUserRegistration,
 } from "./admins.validation.js";
@@ -11,12 +12,12 @@ const router = express.Router();
 
 // router.get("/:id", adminController.findAdminById);
 router.get("/", adminController.findAllAdmin);
-router.post("/", adminController.createAdmin);
+router.post("/", createAdminValidation(), adminController.createAdmin);
 
 router.post(
   "/actions",
   body("process").notEmpty().withMessage("Process name required."),
-  adminActionValidation,
+  adminActionsValidation(),
   adminController.adminActions
 );
 
