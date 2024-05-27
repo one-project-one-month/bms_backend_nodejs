@@ -2,6 +2,7 @@ import db from "../../database/index.js";
 import {
   checkPassword,
   generatePersonalCode,
+  generateToken,
   hashPassword,
 } from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
@@ -258,8 +259,9 @@ const login = async (adminCode, password) => {
       error: ACCESS_DENIED_ERR,
     };
   }
+  const token = generateToken({ adminCode, role: data.role });
   return {
-    data: true,
+    data: token,
     error: null,
   };
 };

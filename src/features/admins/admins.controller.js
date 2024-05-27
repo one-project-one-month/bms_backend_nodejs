@@ -217,7 +217,7 @@ const login = async (req, res) => {
     return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 
   const { adminCode, password } = matchedData(req);
-  const { error } = await adminService.login(adminCode, password);
+  const { data, error } = await adminService.login(adminCode, password);
   if (error)
     switch (error) {
       case ADMIN_NOT_FOUND_ERR:
@@ -229,7 +229,7 @@ const login = async (req, res) => {
           .status(httpStatus.FORBIDDEN)
           .json({ message: "Accessed denied." });
     }
-  return res.status(httpStatus.OK).json({ message: "Access granted." });
+  return res.status(httpStatus.OK).json({ data: { token: data } });
 };
 
 export default {
