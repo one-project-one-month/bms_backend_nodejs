@@ -1,8 +1,13 @@
 import db from "../../database/index.js";
-import { generatePersonalCode, hashPassword } from "./admins.handler.js";
+import {
+  checkPassword,
+  generatePersonalCode,
+  hashPassword,
+} from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
 import transactionProtocol from "../transactions/transactions.protocol.js";
 import {
+  ACCESS_DENIED_ERR,
   ADMIN_NOT_FOUND_ERR,
   DEPOSIT_ERR,
   INSUFFICIENT_AMOUNT_ERR,
@@ -29,13 +34,16 @@ const findAll = async () => {
   });
 };
 
-const findByAdminCode = async (adminCode) => {
+const findByAdminCode = async (adminCode, password = false) => {
   try {
     const admin = await db.admin.findFirstOrThrow({
       where: {
         adminCode,
       },
-      select,
+      select: {
+        ...select,
+        password,
+      },
     });
     return {
       data: admin,
@@ -240,6 +248,22 @@ const getTransactions = async (username) => {
   };
 };
 
+const login = async (adminCode, password) => {
+  const { data, error } = await findByAdminCode(adminCode, true);
+  if (error) return { data, error };
+  const isPassword = await checkPassword(password, data.password);
+  if (!isPassword) {
+    return {
+      data: null,
+      error: ACCESS_DENIED_ERR,
+    };
+  }
+  return {
+    data: true,
+    error: null,
+  };
+};
+
 export default {
   findAll,
   findByAdminCode,
@@ -251,4 +275,5 @@ export default {
   userRegistration,
   getTransactions,
   findUser,
+  login,
 };

@@ -172,9 +172,23 @@ const validationForUserRegistration = () => {
   });
 };
 
+const validationForLogin = () => {
+  return checkSchema({
+    adminCode: {
+      notEmpty: true,
+      errorMessage: "Admin code is required.",
+    },
+    password: {
+      notEmpty: true,
+      errorMessage: "Password is required.",
+    },
+  });
+};
+
 export {
   createAdminValidation,
   adminActionsValidation,
   transactionValidation,
   validationForUserRegistration,
+  validationForLogin,
 };

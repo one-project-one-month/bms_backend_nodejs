@@ -211,10 +211,32 @@ const userRegistration = async (req, res) => {
   return res.status(httpStatus.CREATED).json({ data: user.data });
 };
 
+const login = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty())
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+
+  const { adminCode, password } = matchedData(req);
+  const { error } = await adminService.login(adminCode, password);
+  if (error)
+    switch (error) {
+      case ADMIN_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `Admin is not found with code: ${adminCode}` });
+      default:
+        return res
+          .status(httpStatus.FORBIDDEN)
+          .json({ message: "Accessed denied." });
+    }
+  return res.status(httpStatus.OK).json({ message: "Access granted." });
+};
+
 export default {
   findAllAdmin,
   createAdmin,
   adminActions,
   transactions,
   userRegistration,
+  login,
 };

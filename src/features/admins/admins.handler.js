@@ -9,4 +9,8 @@ const hashPassword = async (password) => {
   return bcrypt.hash(password, saltRounds);
 };
 
-export { generatePersonalCode, hashPassword };
+const checkPassword = async (password, hashedPassword) => {
+  return bcrypt.compare(password, hashedPassword);
+};
+
+export { generatePersonalCode, hashPassword, checkPassword };

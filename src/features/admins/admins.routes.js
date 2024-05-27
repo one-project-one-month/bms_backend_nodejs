@@ -4,6 +4,7 @@ import {
   adminActionsValidation,
   createAdminValidation,
   transactionValidation,
+  validationForLogin,
   validationForUserRegistration,
 } from "./admins.validation.js";
 import { body } from "express-validator";
@@ -13,6 +14,7 @@ const router = express.Router();
 // router.get("/:id", adminController.findAdminById);
 router.get("/", adminController.findAllAdmin);
 router.post("/", createAdminValidation(), adminController.createAdmin);
+router.post("/login", validationForLogin(), adminController.login);
 
 router.post(
   "/actions",
