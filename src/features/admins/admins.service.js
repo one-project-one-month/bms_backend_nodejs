@@ -1,5 +1,5 @@
 import db from "../../database/index.js";
-import { generatePersonalCode } from "./admins.handler.js";
+import { generatePersonalCode, hashPassword } from "./admins.handler.js";
 import userProtocol from "../users/users.protocols.js";
 import transactionProtocol from "../transactions/transactions.protocol.js";
 import {
@@ -73,8 +73,19 @@ const findByAdminId = async (id) => {
 
 const create = async (data) => {
   const adminCode = generatePersonalCode(data.name);
+  try {
+    const password = await hashPassword(data.password);
+    data.password = password;
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      error: INTERNAL_ERR,
+    };
+  }
   const admin = await db.admin.create({
     data: { ...data, adminCode },
+    select,
   });
   return {
     data: admin,
