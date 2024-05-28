@@ -33,10 +33,6 @@ const adminActionsValidation = () => {
 
 const validationForTransfer = () => {
   return checkSchema({
-    adminId: {
-      notEmpty: true,
-      errorMessage: "Admin id is required.",
-    },
     process: {
       notEmpty: true,
       errorMessage: "Transfer type if required.",
@@ -75,10 +71,6 @@ const validationForTransfer = () => {
 
 const validationForListOfTransaction = () => {
   return checkSchema({
-    adminId: {
-      notEmpty: true,
-      errorMessage: "Admin id is required.",
-    },
     process: {
       notEmpty: true,
       errorMessage: "Transfer type if required.",
@@ -96,10 +88,6 @@ const validationForListOfTransaction = () => {
 
 const validationForWithdrawOrDeposit = () => {
   return checkSchema({
-    adminId: {
-      notEmpty: true,
-      errorMessage: "Admin id is required.",
-    },
     process: {
       notEmpty: true,
       errorMessage: "Transfer type if required.",
@@ -164,10 +152,6 @@ const validationForUserRegistration = () => {
     townshipCode: {
       notEmpty: true,
       errorMessage: "TownshipCode must not empty.",
-    },
-    adminCode: {
-      notEmpty: true,
-      errorMessage: "Admin code is required.",
     },
   });
 };
