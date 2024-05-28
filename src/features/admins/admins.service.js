@@ -110,6 +110,7 @@ const deactivate = async (adminCode) => {
     data: {
       isDeactivated: true,
     },
+    select,
   });
   return {
     data: admin,
@@ -224,16 +225,22 @@ const deposit = async (username, amount, adminId) => {
 const findUser = async (username) => userProtocol.findUserByUsername(username);
 
 const userRegistration = async (userData) => {
-  const { data } = await userProtocol.findUserByEmail(userData.email);
-
-  if (data) {
+  const user = await userProtocol.findUserByEmail(userData.email);
+  if (user) {
     return {
-      data,
+      data: user,
       error: USER_ALREADY_CREATED,
     };
   }
 
-  return userProtocol.create(userData);
+  const admin = await findByAdminCode(userData.adminCode);
+  if (admin.error) {
+    return admin;
+  }
+
+  delete userData.adminCode;
+  console.log(admin, userData);
+  return userProtocol.create({ ...userData, adminId: admin.data.id });
 };
 
 const getTransactions = async (username) => {
@@ -252,6 +259,7 @@ const getTransactions = async (username) => {
 const login = async (adminCode, password) => {
   const { data, error } = await findByAdminCode(adminCode, true);
   if (error) return { data, error };
+
   const isPassword = await checkPassword(password, data.password);
   if (!isPassword) {
     return {
@@ -262,6 +270,53 @@ const login = async (adminCode, password) => {
   const token = generateToken({ adminCode, role: data.role });
   return {
     data: token,
+    error: null,
+  };
+};
+
+const getTransactionsForAdmin = async (adminCode) => {
+  const { data, error } = await findByAdminCode(adminCode);
+  if (error) return { data, error };
+
+  const transactions = await db.admin.findUnique({
+    where: {
+      id: data.id,
+    },
+    include: {
+      WithdrawOrDeposit: {
+        select: {
+          id: true,
+          amount: true,
+          time: true,
+          type: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      Transfer: {
+        select: {
+          id: true,
+          amount: true,
+          time: true,
+          sender: {
+            select: {
+              name: true,
+            },
+          },
+          receiver: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return {
+    data: transactions,
     error: null,
   };
 };
@@ -278,4 +333,5 @@ export default {
   getTransactions,
   findUser,
   login,
+  getTransactionsForAdmin,
 };

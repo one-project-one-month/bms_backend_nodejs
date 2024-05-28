@@ -14,6 +14,11 @@ const router = express.Router();
 // router.get("/:id", adminController.findAdminById);
 router.get("/", adminController.findAllAdmin);
 router.post("/", createAdminValidation(), adminController.createAdmin);
+router.post(
+  "/transactions",
+  body("adminCode").notEmpty().withMessage("Admin code is required."),
+  adminController.transactionsForAdmin
+);
 router.post("/login", validationForLogin(), adminController.login);
 
 router.post(

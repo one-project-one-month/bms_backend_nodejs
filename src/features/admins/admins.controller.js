@@ -4,12 +4,14 @@ import adminService from "./admins.service.js";
 import {
   ADMIN_NOT_FOUND_ERR,
   DEPOSIT_ERR,
+  INSUFFICIENT_AMOUNT_ERR,
   RECEIVER_NOT_FOUND_ERR,
   SENDER_NOT_FOUND_ERR,
   USER_ALREADY_CREATED,
   USER_NOT_FOUND_ERR,
   WITHDRAW_ERR,
 } from "../../errors/errors.js";
+import { generateToken } from "./admins.handler.js";
 
 const findAllAdmin = async (req, res) => {
   let admins = await adminService.findAll();
@@ -108,6 +110,10 @@ const transfer = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "Receiver not found" });
+      case INSUFFICIENT_AMOUNT_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Insufficient amount" });
     }
   }
 
@@ -153,6 +159,10 @@ const withdrawOrDeposit = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "User not found" });
+      case INSUFFICIENT_AMOUNT_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Insufficient amount" });
       case WITHDRAW_ERR:
       case DEPOSIT_ERR:
         return res
@@ -229,7 +239,30 @@ const login = async (req, res) => {
           .status(httpStatus.FORBIDDEN)
           .json({ message: "Accessed denied." });
     }
-  return res.status(httpStatus.OK).json({ data: { token: data } });
+
+  const token = generateToken({ adminCode, role: data.role });
+  return res
+    .status(httpStatus.OK)
+    .cookie("token", token, { httpOnly: true, secure: true })
+    .json({ data });
+};
+
+const transactionsForAdmin = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty())
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+
+  const { adminCode } = matchedData(req);
+  const transactions = await adminService.getTransactionsForAdmin(adminCode);
+  if (transactions.error) {
+    switch (transactions.error) {
+      case ADMIN_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: "Admin not found." });
+    }
+  }
+  return res.status(httpStatus.OK).json({ data: transactions.data });
 };
 
 export default {
@@ -239,4 +272,5 @@ export default {
   transactions,
   userRegistration,
   login,
+  transactionsForAdmin,
 };
