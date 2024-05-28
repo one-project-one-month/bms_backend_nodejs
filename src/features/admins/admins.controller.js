@@ -2,6 +2,7 @@ import httpStatus from "http-status-codes";
 import { matchedData, validationResult } from "express-validator";
 import adminService from "./admins.service.js";
 import {
+  ACCESS_DENIED_ERR,
   ADMIN_NOT_FOUND_ERR,
   DEPOSIT_ERR,
   INSUFFICIENT_AMOUNT_ERR,
@@ -114,6 +115,10 @@ const transfer = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "Insufficient amount" });
+      case ACCESS_DENIED_ERR:
+        return res
+          .status(httpStatus.FORBIDDEN)
+          .json({ message: "User is not authorized to perform this action." });
     }
   }
 
@@ -168,6 +173,10 @@ const withdrawOrDeposit = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "Something go wrong!" });
+      case ACCESS_DENIED_ERR:
+        return res
+          .status(httpStatus.FORBIDDEN)
+          .json({ message: "User is not authorized to perform this action." });
     }
   }
 

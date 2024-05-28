@@ -134,6 +134,9 @@ const transfer = async ({
   const sender = await userProtocol.findUserByUsername(senderUsername);
   if (!sender) return { data: null, error: SENDER_NOT_FOUND_ERR };
 
+  if (sender.isDeactivated || sender.isDeleted)
+    return { data: null, error: ACCESS_DENIED_ERR };
+
   const receiver = await userProtocol.findUserByUsername(receiverUsername);
   if (!receiver) return { data: null, error: RECEIVER_NOT_FOUND_ERR };
 
@@ -186,6 +189,9 @@ const withdraw = async (username, amount, adminId) => {
   let user = await userProtocol.findUserByUsername(username);
   if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
 
+  if (user.isDeactivated || user.isDeleted)
+    return { data: null, error: ACCESS_DENIED_ERR };
+
   if (user.balance < amount)
     return { data: null, error: INSUFFICIENT_AMOUNT_ERR };
 
@@ -208,6 +214,9 @@ const deposit = async (username, amount, adminId) => {
 
   let user = await userProtocol.findUserByUsername(username);
   if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
+
+  if (user.isDeactivated || user.isDeleted)
+    return { data: null, error: ACCESS_DENIED_ERR };
 
   user = await userProtocol.deposit(user.username, user.balance, amount);
   if (!user) return { data: null, error: DEPOSIT_ERR };
