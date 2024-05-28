@@ -15,7 +15,9 @@ const checkPassword = async (password, hashedPassword) => {
 };
 
 const generateToken = ({ adminCode, role }) => {
-  const token = jwt.sign({ adminCode, role }, process.env["ADMIN_TOKEN"]);
+  const token = jwt.sign({ adminCode, role }, process.env["ADMIN_TOKEN"], {
+    expiresIn: "1d",
+  });
   return token;
 };
 
