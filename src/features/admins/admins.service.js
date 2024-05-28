@@ -10,6 +10,7 @@ import transactionProtocol from "../transactions/transactions.protocol.js";
 import {
   ACCESS_DENIED_ERR,
   ADMIN_NOT_FOUND_ERR,
+  ALREADY_ACTIVATED_ERR,
   DEPOSIT_ERR,
   INSUFFICIENT_AMOUNT_ERR,
   INTERNAL_ERR,
@@ -248,7 +249,6 @@ const userRegistration = async (userData) => {
   }
 
   delete userData.adminCode;
-  console.log(admin, userData);
   return userProtocol.create({ ...userData, adminId: admin.data.id });
 };
 
@@ -330,6 +330,26 @@ const getTransactionsForAdmin = async (adminCode) => {
   };
 };
 
+const activate = async (adminCode) => {
+  const { data, error } = await findByAdminCode(adminCode);
+  if (error) return { data, error };
+
+  if (!data.isDeactivated) return { data: null, error: ALREADY_ACTIVATED_ERR };
+
+  const admin = await db.admin.update({
+    where: {
+      id: data.id,
+    },
+    data: {
+      isDeactivated: false,
+    },
+  });
+  return {
+    data: admin,
+    error: null,
+  };
+};
+
 export default {
   findAll,
   findByAdminCode,
@@ -343,4 +363,5 @@ export default {
   findUser,
   login,
   getTransactionsForAdmin,
+  activate,
 };

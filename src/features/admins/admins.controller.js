@@ -4,6 +4,7 @@ import adminService from "./admins.service.js";
 import {
   ACCESS_DENIED_ERR,
   ADMIN_NOT_FOUND_ERR,
+  ALREADY_ACTIVATED_ERR,
   DEPOSIT_ERR,
   INSUFFICIENT_AMOUNT_ERR,
   RECEIVER_NOT_FOUND_ERR,
@@ -47,7 +48,7 @@ const createAdmin = async (req, res) => {
 const deactivateAdmin = async (req, res) => {
   const { data } = matchedData(req);
   let admin = await adminService.findByAdminCode(data.adminCode);
-  console.info("admin ", admin);
+
   if (admin.error) {
     switch (admin.error) {
       case ADMIN_NOT_FOUND_ERR:
@@ -68,6 +69,24 @@ const deactivateAdmin = async (req, res) => {
   return res.status(httpStatus.OK).json({ data: admin.data });
 };
 
+const activateAdmin = async (req, res) => {
+  const { data } = matchedData(req);
+  const admin = await adminService.activate(data.adminCode);
+  if (admin.error) {
+    switch (admin.error) {
+      case ADMIN_NOT_FOUND_ERR:
+        return res.status(httpStatus.BAD_REQUEST).json({
+          message: `Not found admin with admin code: ${data.adminCode}`,
+        });
+      case ALREADY_ACTIVATED_ERR:
+        return res.status(httpStatus.BAD_REQUEST).json({
+          message: "Admin is already activated",
+        });
+    }
+  }
+  return res.status(httpStatus.OK).json({ data: admin.data });
+};
+
 const adminActions = async (req, res) => {
   const result = validationResult(req);
   if (result.isEmpty()) {
@@ -75,6 +94,8 @@ const adminActions = async (req, res) => {
     switch (process) {
       case "deactivate":
         return await deactivateAdmin(req, res);
+      case "activate":
+        return await activateAdmin(req, res);
       case "search":
         return await findAdminByCode(req, res);
       default:
