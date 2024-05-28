@@ -73,9 +73,9 @@ const createUserValidation = () => {
       notEmpty: true,
       errorMessage: "TownshipCode must not empty.",
     },
-    adminId: {
+    adminCode: {
       notEmpty: true,
-      errorMessage: "AdminId must not empty.",
+      errorMessage: "Admin code is required.",
     },
   });
 };
