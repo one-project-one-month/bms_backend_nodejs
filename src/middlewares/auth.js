@@ -10,5 +10,7 @@ export default function auth(req, res, next) {
   if (!data) {
     return res.status(httpStatus.UNAUTHORIZED).end();
   }
+  req.body.adminCode = data.adminCode;
+  console.log("data in auth middleware", data);
   next();
 }
