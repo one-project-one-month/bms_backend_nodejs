@@ -8,13 +8,54 @@ datasource db {
 }
 
 model User {
-  id            String  @id @default(uuid())
-  email         String  @unique
-  name          String
-  password      String
-  balance       Float   @default(0)
-  isDeleted     Boolean @default(false)
-  isDeactivated Boolean @default(false)
-  stateCode     String
-  townshipCode  String
+  id                       String              @id @default(uuid())
+  name                     String
+  email                    String              @unique
+  username                 String              @unique
+  balance                  Float               @default(0)
+  isDeleted                Boolean             @default(false)
+  isDeactivated            Boolean             @default(false)
+  stateCode                String
+  townshipCode             String
+  admin                    Admin               @relation(fields: [adminId], references: [id])
+  adminId                  String
+  SendingTransferHistory   Transfer[]          @relation(name: "sender")
+  ReceivingTransferHistory Transfer[]          @relation(name: "receiver")
+  WithdrawOrDeposit        WithdrawOrDeposit[]
+}
+
+model Admin {
+  id                String              @id @default(uuid())
+  name              String
+  adminCode         String              @unique
+  password          String
+  role              String
+  isDeactivated     Boolean             @default(false)
+  Transfer          Transfer[]
+  WithdrawOrDeposit WithdrawOrDeposit[]
+  User              User[]
+}
+
+model Transfer {
+  id         String   @id @default(uuid())
+  sender     User     @relation(name: "sender", fields: [senderId], references: [id])
+  receiver   User     @relation(name: "receiver", fields: [receiverId], references: [id])
+  amount     Float
+  note       String   @default("")
+  time       DateTime @default(now())
+  senderId   String
+  receiverId String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  adminId    String
+}
+
+model WithdrawOrDeposit {
+  id      String   @id @default(uuid())
+  type    String
+  amount  Float
+  time    DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  admin   Admin    @relation(fields: [adminId], references: [id])
+  adminId String
 }
