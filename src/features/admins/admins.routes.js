@@ -13,6 +13,7 @@ import auth from "../../middlewares/auth.js";
 const router = express.Router();
 
 router.post("/login", validationForLogin(), adminController.login);
+router.post("/signup", createAdminValidation(), adminController.createAdmin);
 router.get("/", auth, adminController.findAllAdmin);
 router.post("/", createAdminValidation(), adminController.createAdmin);
 router.post(
