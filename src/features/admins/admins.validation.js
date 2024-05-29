@@ -16,10 +16,6 @@ const createAdminValidation = () => {
 
 const adminActionsValidation = () => {
   return checkSchema({
-    managerId: {
-      notEmpty: true,
-      errorMessage: "Manager ID is required.",
-    },
     data: {
       notEmpty: true,
       errorMessage: "Data field is required.",
