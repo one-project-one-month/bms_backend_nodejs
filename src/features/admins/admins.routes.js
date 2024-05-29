@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post("/login", validationForLogin(), adminController.login);
 router.get("/", auth, adminController.findAllAdmin);
-router.post("/", auth, createAdminValidation(), adminController.createAdmin);
+router.post("/", createAdminValidation(), adminController.createAdmin);
 router.post(
   "/transactions",
   auth,

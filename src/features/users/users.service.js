@@ -65,6 +65,22 @@ const create = async (data) => {
         ...data,
         username,
       },
+      select: {
+        name: true,
+        username: true,
+        email: true,
+        balance: true,
+        stateCode: true,
+        townshipCode: true,
+        isDeactivated: true,
+        isDeleted: true,
+        admin: {
+          select: {
+            name: true,
+            adminCode: true,
+          },
+        },
+      },
     });
     return {
       data: user,

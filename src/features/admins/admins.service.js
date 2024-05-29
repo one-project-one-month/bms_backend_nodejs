@@ -240,8 +240,13 @@ const userRegistration = async (userData) => {
     };
   }
 
-  const { data } = await findByAdminCode(userData.adminCode);
-  console.log("data in userRegistration", data);
+  const { data, error } = await findByAdminCode(userData.adminCode);
+  if (error) {
+    return {
+      data,
+      error,
+    };
+  }
 
   delete userData.adminCode;
   return userProtocol.create({ ...userData, adminId: data.id });
@@ -279,51 +284,61 @@ const login = async (adminCode, password) => {
 };
 
 const getTransactionsForAdmin = async (adminCode) => {
-  const transactions = await db.admin.findUnique({
-    where: {
-      adminCode,
-    },
-    include: {
-      WithdrawOrDeposit: {
-        select: {
-          id: true,
-          amount: true,
-          time: true,
-          type: true,
-          user: {
-            select: {
-              name: true,
+  try {
+    const transactions = await db.admin.findUnique({
+      where: {
+        adminCode,
+      },
+      include: {
+        WithdrawOrDeposit: {
+          select: {
+            id: true,
+            amount: true,
+            time: true,
+            type: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        Transfer: {
+          select: {
+            id: true,
+            amount: true,
+            time: true,
+            sender: {
+              select: {
+                name: true,
+              },
+            },
+            receiver: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-      Transfer: {
-        select: {
-          id: true,
-          amount: true,
-          time: true,
-          sender: {
-            select: {
-              name: true,
-            },
-          },
-          receiver: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  return {
-    data: transactions,
-    error: null,
-  };
+    });
+    return {
+      data: transactions,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      error: ADMIN_NOT_FOUND_ERR,
+    };
+  }
 };
 
 const activate = async (adminCode) => {
-  const { data } = await findByAdminCode(adminCode);
+  const { data, error } = await findByAdminCode(adminCode);
+
+  if (error) return { data, error };
 
   if (!data.isDeactivated) return { data: null, error: ALREADY_ACTIVATED_ERR };
 
@@ -342,30 +357,37 @@ const activate = async (adminCode) => {
 };
 
 const getUserByAdminCode = async (adminCode) => {
-  console.log("adminCode in getUserByAdminCode", adminCode);
-  const users = await db.admin.findUniqueOrThrow({
-    where: {
-      adminCode,
-    },
-    select: {
-      User: {
-        select: {
-          name: true,
-          username: true,
+  try {
+    const users = await db.admin.findUniqueOrThrow({
+      where: {
+        adminCode,
+      },
+      select: {
+        User: {
+          select: {
+            name: true,
+            username: true,
+          },
         },
       },
-    },
-  });
-  if (!users) {
+    });
+    if (!users) {
+      return {
+        data: null,
+        error: ADMIN_NOT_FOUND_ERR,
+      };
+    }
+    return {
+      data: users,
+      error: null,
+    };
+  } catch (error) {
+    console.error(error);
     return {
       data: null,
       error: ADMIN_NOT_FOUND_ERR,
     };
   }
-  return {
-    data: users,
-    error: null,
-  };
 };
 
 export default {

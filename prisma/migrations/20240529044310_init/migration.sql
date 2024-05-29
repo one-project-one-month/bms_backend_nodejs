@@ -1,9 +1,9 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "isDeactivated" BOOLEAN NOT NULL DEFAULT false,
@@ -18,10 +18,10 @@ CREATE TABLE "User" (
 CREATE TABLE "Admin" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "personalCode" TEXT NOT NULL,
+    "adminCode" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" TEXT NOT NULL,
-    "isDeactivaed" BOOLEAN NOT NULL DEFAULT false,
+    "isDeactivated" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );
@@ -55,7 +55,10 @@ CREATE TABLE "WithdrawOrDeposit" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Admin_personalCode_key" ON "Admin"("personalCode");
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Admin_adminCode_key" ON "Admin"("adminCode");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

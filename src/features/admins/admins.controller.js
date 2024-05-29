@@ -110,7 +110,7 @@ const adminActions = async (req, res) => {
 
 const transfer = async (req, res) => {
   const { data } = matchedData(req);
-  const adminCode = req.body["adminCode"];
+  const adminCode = req.adminCode;
 
   const transaction = await adminService.transfer({
     senderUsername: data.sender,
@@ -167,7 +167,7 @@ const listTransactionsByUserEmail = async (req, res) => {
 const withdrawOrDeposit = async (req, res) => {
   let user;
   const { process, data } = matchedData(req);
-  const adminCode = data.adminCode;
+  const adminCode = req.adminCode;
 
   switch (process) {
     case "withdraw":
@@ -236,7 +236,7 @@ const userRegistration = async (req, res) => {
 
   const data = matchedData(req);
 
-  data.adminCode = req.body["adminCode"];
+  data.adminCode = req.adminCode;
 
   const user = await adminService.userRegistration(data);
   if (user.error)
@@ -245,6 +245,10 @@ const userRegistration = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "User is already created." });
+      case ADMIN_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `Admin not found with code ${data.adminCode}.` });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
@@ -290,6 +294,7 @@ const getUserByAdminCode = async (req, res) => {
     return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
 
   const { adminCode } = matchedData(req);
+
   const { data, error } = await adminService.getUserByAdminCode(adminCode);
   if (error) {
     switch (error) {

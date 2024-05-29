@@ -69,6 +69,17 @@ async function createTransferTransaction(data) {
 async function createWithdrawOrDepositTransaction(data) {
   return db.withdrawOrDeposit.create({
     data,
+    select: {
+      id: true,
+      amount: true,
+      time: true,
+      type: true,
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 }
 
