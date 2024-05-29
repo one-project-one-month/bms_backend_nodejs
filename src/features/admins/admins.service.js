@@ -241,6 +241,7 @@ const userRegistration = async (userData) => {
   }
 
   const { data } = await findByAdminCode(userData.adminCode);
+  console.log("data in userRegistration", data);
 
   delete userData.adminCode;
   return userProtocol.create({ ...userData, adminId: data.id });
@@ -340,6 +341,33 @@ const activate = async (adminCode) => {
   };
 };
 
+const getUserByAdminCode = async (adminCode) => {
+  console.log("adminCode in getUserByAdminCode", adminCode);
+  const users = await db.admin.findUniqueOrThrow({
+    where: {
+      adminCode,
+    },
+    select: {
+      User: {
+        select: {
+          name: true,
+          username: true,
+        },
+      },
+    },
+  });
+  if (!users) {
+    return {
+      data: null,
+      error: ADMIN_NOT_FOUND_ERR,
+    };
+  }
+  return {
+    data: users,
+    error: null,
+  };
+};
+
 export default {
   findAll,
   findByAdminCode,
@@ -354,4 +382,5 @@ export default {
   login,
   getTransactionsForAdmin,
   activate,
+  getUserByAdminCode,
 };

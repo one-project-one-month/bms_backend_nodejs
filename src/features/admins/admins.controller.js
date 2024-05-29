@@ -109,7 +109,8 @@ const adminActions = async (req, res) => {
 };
 
 const transfer = async (req, res) => {
-  const { adminCode, data } = matchedData(req);
+  const { data } = matchedData(req);
+  const adminCode = req.body["adminCode"];
 
   const transaction = await adminService.transfer({
     senderUsername: data.sender,
@@ -165,7 +166,8 @@ const listTransactionsByUserEmail = async (req, res) => {
 
 const withdrawOrDeposit = async (req, res) => {
   let user;
-  const { process, adminCode, data } = matchedData(req);
+  const { process, data } = matchedData(req);
+  const adminCode = data.adminCode;
 
   switch (process) {
     case "withdraw":
@@ -234,6 +236,8 @@ const userRegistration = async (req, res) => {
 
   const data = matchedData(req);
 
+  data.adminCode = req.body["adminCode"];
+
   const user = await adminService.userRegistration(data);
   if (user.error)
     switch (user.error) {
@@ -280,6 +284,27 @@ const transactionsForAdmin = async (req, res) => {
   return res.status(httpStatus.OK).json({ data: transactions.data });
 };
 
+const getUserByAdminCode = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty())
+    return res.status(httpStatus.BAD_REQUEST).json({ message: result.array() });
+
+  const { adminCode } = matchedData(req);
+  const { data, error } = await adminService.getUserByAdminCode(adminCode);
+  if (error) {
+    switch (error) {
+      case ADMIN_NOT_FOUND_ERR:
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: `Admin not found with code ${adminCode}` });
+
+      default:
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
+    }
+  }
+  return res.status(httpStatus.OK).json({ data });
+};
+
 export default {
   findAllAdmin,
   createAdmin,
@@ -288,4 +313,5 @@ export default {
   userRegistration,
   login,
   transactionsForAdmin,
+  getUserByAdminCode,
 };

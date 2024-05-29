@@ -10,6 +10,7 @@ export default function auth(req, res, next) {
     if (err) {
       return res.status(httpStatus.UNAUTHORIZED).end();
     }
+
     req.body.adminCode = data.adminCode;
     next();
   });

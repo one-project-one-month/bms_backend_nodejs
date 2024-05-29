@@ -17,6 +17,12 @@ async function getAllTransactions() {
       },
       note: true,
       time: true,
+      admin: {
+        select: {
+          name: true,
+          adminCode: true,
+        },
+      },
     },
   });
   const withdrawOrDeposits = await db.withdrawOrDeposit.findMany({
