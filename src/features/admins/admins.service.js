@@ -60,26 +60,26 @@ const findByAdminCode = async (adminCode, password = false) => {
   }
 };
 
-const findByAdminId = async (id) => {
-  try {
-    const admin = await db.admin.findFirstOrThrow({
-      where: {
-        id,
-      },
-      select,
-    });
-    return {
-      data: admin,
-      error: null,
-    };
-  } catch (error) {
-    console.info(error);
-    return {
-      data: null,
-      error: ADMIN_NOT_FOUND_ERR,
-    };
-  }
-};
+// const findByAdminId = async (id) => {
+//   try {
+//     const admin = await db.admin.findFirstOrThrow({
+//       where: {
+//         id,
+//       },
+//       select,
+//     });
+//     return {
+//       data: admin,
+//       error: null,
+//     };
+//   } catch (error) {
+//     console.info(error);
+//     return {
+//       data: null,
+//       error: ADMIN_NOT_FOUND_ERR,
+//     };
+//   }
+// };
 
 const create = async (data) => {
   const adminCode = generatePersonalCode(data.name);
@@ -124,13 +124,12 @@ const transfer = async ({
   receiverUsername,
   transferAmount,
   note,
-  adminId,
+  adminCode,
 }) => {
   if (senderUsername === receiverUsername)
     return { data: null, error: SAME_USER_ERR };
 
-  const admin = await findByAdminId(adminId);
-  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+  const { data } = await findByAdminCode(adminCode);
 
   const sender = await userProtocol.findUserByUsername(senderUsername);
   if (!sender) return { data: null, error: SENDER_NOT_FOUND_ERR };
@@ -160,7 +159,7 @@ const transfer = async ({
       receiverId: receiver.id,
       amount: transferAmount,
       note,
-      adminId,
+      adminId: data.id,
     });
 
     if (!transaction) {
@@ -183,9 +182,8 @@ const transfer = async ({
   }
 };
 
-const withdraw = async (username, amount, adminId) => {
-  const admin = await findByAdminId(adminId);
-  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+const withdraw = async (username, amount, adminCode) => {
+  const { data } = await findByAdminCode(adminCode);
 
   let user = await userProtocol.findUserByUsername(username);
   if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
@@ -204,14 +202,13 @@ const withdraw = async (username, amount, adminId) => {
       userId: user.id,
       amount,
       type: "withdraw",
-      adminId,
+      adminId: data.id,
     });
   return { data: transaction, error: null };
 };
 
-const deposit = async (username, amount, adminId) => {
-  const admin = await findByAdminId(adminId);
-  if (admin.error) return { data: null, error: ADMIN_NOT_FOUND_ERR };
+const deposit = async (username, amount, adminCode) => {
+  const { data } = await findByAdminCode(adminCode);
 
   let user = await userProtocol.findUserByUsername(username);
   if (!user) return { data: null, error: USER_NOT_FOUND_ERR };
@@ -227,7 +224,7 @@ const deposit = async (username, amount, adminId) => {
       userId: user.id,
       amount,
       type: "deposit",
-      adminId,
+      adminId: data.id,
     });
   return { data: transaction, error: null };
 };
@@ -243,13 +240,10 @@ const userRegistration = async (userData) => {
     };
   }
 
-  const admin = await findByAdminCode(userData.adminCode);
-  if (admin.error) {
-    return admin;
-  }
+  const { data } = await findByAdminCode(userData.adminCode);
 
   delete userData.adminCode;
-  return userProtocol.create({ ...userData, adminId: admin.data.id });
+  return userProtocol.create({ ...userData, adminId: data.id });
 };
 
 const getTransactions = async (username) => {
@@ -284,12 +278,9 @@ const login = async (adminCode, password) => {
 };
 
 const getTransactionsForAdmin = async (adminCode) => {
-  const { data, error } = await findByAdminCode(adminCode);
-  if (error) return { data, error };
-
   const transactions = await db.admin.findUnique({
     where: {
-      id: data.id,
+      adminCode,
     },
     include: {
       WithdrawOrDeposit: {
@@ -331,14 +322,13 @@ const getTransactionsForAdmin = async (adminCode) => {
 };
 
 const activate = async (adminCode) => {
-  const { data, error } = await findByAdminCode(adminCode);
-  if (error) return { data, error };
+  const { data } = await findByAdminCode(adminCode);
 
   if (!data.isDeactivated) return { data: null, error: ALREADY_ACTIVATED_ERR };
 
   const admin = await db.admin.update({
     where: {
-      id: data.id,
+      adminCode: adminCode,
     },
     data: {
       isDeactivated: false,

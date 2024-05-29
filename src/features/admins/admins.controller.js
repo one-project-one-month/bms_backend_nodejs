@@ -8,6 +8,7 @@ import {
   DEPOSIT_ERR,
   INSUFFICIENT_AMOUNT_ERR,
   RECEIVER_NOT_FOUND_ERR,
+  SAME_USER_ERR,
   SENDER_NOT_FOUND_ERR,
   USER_ALREADY_CREATED,
   USER_NOT_FOUND_ERR,
@@ -108,22 +109,22 @@ const adminActions = async (req, res) => {
 };
 
 const transfer = async (req, res) => {
-  const { adminId, data } = matchedData(req);
+  const { adminCode, data } = matchedData(req);
 
   const transaction = await adminService.transfer({
     senderUsername: data.sender,
     receiverUsername: data.receiver,
     transferAmount: data.transferAmount,
     note: data.note,
-    adminId,
+    adminCode,
   });
 
   if (transaction.error) {
     switch (transaction.error) {
-      case ADMIN_NOT_FOUND_ERR:
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: "Admin not found" });
+      case SAME_USER_ERR:
+        return res.status(httpStatus.BAD_REQUEST).json({
+          message: "Sender and receiver must not be the same user",
+        });
       case SENDER_NOT_FOUND_ERR:
         return res
           .status(httpStatus.BAD_REQUEST)
@@ -164,14 +165,14 @@ const listTransactionsByUserEmail = async (req, res) => {
 
 const withdrawOrDeposit = async (req, res) => {
   let user;
-  const { process, adminId, data } = matchedData(req);
+  const { process, adminCode, data } = matchedData(req);
 
   switch (process) {
     case "withdraw":
-      user = await adminService.withdraw(data.username, data.amount, adminId);
+      user = await adminService.withdraw(data.username, data.amount, adminCode);
       break;
     case "deposit":
-      user = await adminService.deposit(data.username, data.amount, adminId);
+      user = await adminService.deposit(data.username, data.amount, adminCode);
       break;
   }
 
@@ -240,10 +241,6 @@ const userRegistration = async (req, res) => {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: "User is already created." });
-      case ADMIN_NOT_FOUND_ERR:
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: "Admin not found." });
       default:
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).end();
     }
@@ -260,10 +257,6 @@ const login = async (req, res) => {
   const { data, error } = await adminService.login(adminCode, password);
   if (error)
     switch (error) {
-      case ADMIN_NOT_FOUND_ERR:
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: `Admin is not found with code: ${adminCode}` });
       default:
         return res
           .status(httpStatus.FORBIDDEN)
@@ -284,14 +277,6 @@ const transactionsForAdmin = async (req, res) => {
 
   const { adminCode } = matchedData(req);
   const transactions = await adminService.getTransactionsForAdmin(adminCode);
-  if (transactions.error) {
-    switch (transactions.error) {
-      case ADMIN_NOT_FOUND_ERR:
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: "Admin not found." });
-    }
-  }
   return res.status(httpStatus.OK).json({ data: transactions.data });
 };
 

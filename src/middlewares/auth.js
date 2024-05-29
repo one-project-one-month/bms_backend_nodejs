@@ -3,14 +3,14 @@ import httpStatus from "http-status-codes";
 
 export default function auth(req, res, next) {
   let token = req.headers.authorization;
-  token = token.split(" ")[1];
-
   if (!token) return res.status(httpStatus.UNAUTHORIZED).end();
-  const data = jwt.verify(token, process.env["ADMIN_TOKEN"]);
-  if (!data) {
-    return res.status(httpStatus.UNAUTHORIZED).end();
-  }
-  req.body.adminCode = data.adminCode;
-  console.log("data in auth middleware", data);
-  next();
+
+  token = token.split(" ")[1];
+  jwt.verify(token, process.env["ADMIN_TOKEN"], (err, data) => {
+    if (err) {
+      return res.status(httpStatus.UNAUTHORIZED).end();
+    }
+    req.body.adminCode = data.adminCode;
+    next();
+  });
 }
