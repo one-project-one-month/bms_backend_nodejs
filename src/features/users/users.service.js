@@ -9,7 +9,16 @@ import {
 import usersHandler from "./users.handler.js";
 
 const findAll = async () => {
-  return db.user.findMany({});
+  return db.user.findMany({
+    include: {
+      admin: {
+        select: {
+          name: true,
+          adminCode: true,
+        },
+      },
+    },
+  });
 };
 
 const findByUsername = async (username) => {
