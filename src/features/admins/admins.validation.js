@@ -149,6 +149,9 @@ const validationForUserRegistration = () => {
       notEmpty: true,
       errorMessage: "TownshipCode must not empty.",
     },
+    balance: {
+      optional: true,
+    },
   });
 };
 
